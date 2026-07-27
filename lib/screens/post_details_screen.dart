@@ -1,18 +1,44 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-class PostDetailsScreen extends StatelessWidget {
+class PostDetailsScreen extends StatefulWidget {
+  final int postId;
   final String title;
   final String subtitle;
   final String content;
-  final String? imageUrl;
 
   const PostDetailsScreen({
     super.key,
+    required this.postId,
     required this.title,
     required this.subtitle,
     required this.content,
-    required this.imageUrl,
   });
+
+  @override
+  State<PostDetailsScreen> createState() => _PostDetailsScreenState();
+}
+
+class _PostDetailsScreenState extends State<PostDetailsScreen> {
+  List<String> imageUrls = [];
+
+  @override
+  void initState() {
+    super.initState();
+    loadImages();
+  }
+
+  Future<void> loadImages() async {
+    final data = await Supabase.instance.client
+        .from('post_images')
+        .select()
+        .eq('post_id', widget.postId);
+    print(data);
+    setState(() {
+      imageUrls =
+          data.map<String>((e) => e['image_url'] as String).toList();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,24 +46,28 @@ class PostDetailsScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Post Details'),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-            if (imageUrl != null && imageUrl!.isNotEmpty)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  imageUrl!,
-                  width: double.infinity,
-                  height: 220,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Icon(
-                      Icons.broken_image,
-                      size: 100,
+            if (imageUrls.isNotEmpty)
+              SizedBox(
+                height: 220,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: imageUrls.length,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          imageUrls[index],
+                          width: 250,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
                     );
                   },
                 ),
@@ -46,15 +76,17 @@ class PostDetailsScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             Text(
-              title,
+              widget.title,
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
 
+            const SizedBox(height: 8),
+
             Text(
-              subtitle,
+              widget.subtitle,
               style: const TextStyle(
                 fontSize: 18,
                 color: Colors.grey,
@@ -64,7 +96,7 @@ class PostDetailsScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             Text(
-              content,
+              widget.content,
               style: const TextStyle(
                 fontSize: 16,
               ),

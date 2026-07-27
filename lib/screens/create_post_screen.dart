@@ -32,7 +32,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   final ImagePicker picker = ImagePicker();
 
-  XFile? selectedImage;
+  List<XFile> selectedImages = [];
 
   @override
   void initState() {
@@ -43,38 +43,38 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     contentController.text = widget.content ?? '';
   }
 
-  Future<void> pickImage() async {
-    final XFile? image = await picker.pickImage(
-      source: ImageSource.gallery,
-    );
+  Future<void> pickImages() async {
+    final List<XFile> images = await picker.pickMultiImage();
 
-
-
-    if (image != null) {
+    if (images.isNotEmpty) {
       setState(() {
-        selectedImage = image;
+        selectedImages = images;
       });
     }
   }
 
-  Future<String?> uploadImage() async {
-    if (selectedImage == null) return null;
+  Future<List<String>> uploadImages() async {
+    List<String> imageUrls = [];
 
-    final fileName =
-        '${DateTime.now().millisecondsSinceEpoch}_${selectedImage!.name}';
+    for (final image in selectedImages) {
+      final fileName =
+          '${DateTime.now().millisecondsSinceEpoch}_${image.name}';
 
-    await Supabase.instance.client.storage
-        .from('post-images')
-        .uploadBinary(
-      fileName,
-      await selectedImage!.readAsBytes(),
-    );
+      await Supabase.instance.client.storage
+          .from('post-images')
+          .uploadBinary(
+        fileName,
+        await image.readAsBytes(),
+      );
 
-    final imageUrl = Supabase.instance.client.storage
-        .from('post-images')
-        .getPublicUrl(fileName);
+      final imageUrl = Supabase.instance.client.storage
+          .from('post-images')
+          .getPublicUrl(fileName);
 
-    return imageUrl;
+      imageUrls.add(imageUrl);
+    }
+
+    return imageUrls;
   }
 
   @override
@@ -89,17 +89,27 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           children: [
 
             ElevatedButton.icon(
-              onPressed: pickImage,
+              onPressed: pickImages,
               icon: const Icon(Icons.image),
               label: const Text('Add Image'),
             ),
 
-            if (selectedImage != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Image.network(
-                  selectedImage!.path,
-                  height: 200,
+            if (selectedImages.isNotEmpty)
+              SizedBox(
+                height: 120,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: selectedImages.length,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Image.network(
+                        selectedImages[index].path,
+                        width: 120,
+                        fit: BoxFit.cover,
+                      ),
+                    );
+                  },
                 ),
               ),
 
@@ -134,21 +144,34 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             ElevatedButton(
               onPressed: () async {
 
-                String? imageUrl = widget.imageUrl;
+                List<String> imageUrls = [];
 
-                if (selectedImage != null) {
-                  imageUrl = await uploadImage();
+                if (selectedImages.isNotEmpty) {
+                  imageUrls = await uploadImages();
                 }
 
                 if (widget.id == null) {
 
-
-                  await Supabase.instance.client.from('posts').insert({
+                  final post = await Supabase.instance.client
+                      .from('posts')
+                      .insert({
                     'title': titleController.text,
                     'subtitle': subtitleController.text,
                     'content': contentController.text,
-                    'image_url': imageUrl,
-                  });
+                  })
+                      .select()
+                      .single();
+
+                  final postId = post['id'];
+
+                  for (String url in imageUrls) {
+                    await Supabase.instance.client
+                        .from('post_images')
+                        .insert({
+                      'post_id': postId,
+                      'image_url': url,
+                    });
+                  }
 
                 } else {
 
@@ -158,7 +181,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     'title': titleController.text,
                     'subtitle': subtitleController.text,
                     'content': contentController.text,
-                    'image_url': imageUrl,
+
                   })
                       .eq('id', widget.id!);
                 }

@@ -91,10 +91,11 @@ class PostCard extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (context) => PostDetailsScreen(
+                      postId: id,
                       title: title,
                       subtitle: subtitle,
                       content: content,
-                      imageUrl: imageUrl,
+
                     ),
                   ),
                 );
