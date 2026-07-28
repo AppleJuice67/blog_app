@@ -10,8 +10,10 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
 
+  final usernameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +25,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+
+            TextField(
+              controller: usernameController,
+              decoration: const InputDecoration(
+                labelText: 'Username',
+              ),
+            ),
+
+            const SizedBox(height: 16),
 
             TextField(
               controller: emailController,
@@ -46,10 +57,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ElevatedButton(
               onPressed: () async {
                 try {
-                  await Supabase.instance.client.auth.signUp(
+
+                  final response = await Supabase.instance.client.auth.signUp(
                     email: emailController.text.trim(),
                     password: passwordController.text.trim(),
                   );
+
+                  final user = response.user;
+
+                  if (user != null) {
+
+                    await Supabase.instance.client
+                        .from('profiles')
+                        .insert({
+                      'id': user.id,
+                      'username': usernameController.text.trim(),
+                    });
+
+                  }
 
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -58,12 +83,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   );
 
                   Navigator.pop(context);
+
                 } catch (e) {
+
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(e.toString()),
                     ),
                   );
+
                 }
               },
               child: const Text('Register'),
