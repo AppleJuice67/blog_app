@@ -117,48 +117,54 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
             ),
+          ],
+        ),
+      ),
 
-            // Pagination Controls at the bottom
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    offset: const Offset(0, -2),
-                    blurRadius: 10,
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Page ${postProvider.currentPage + 1}',
-                    style: const TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                  Row(
-                    children: [
-                      IconButton(
-                        onPressed: postProvider.currentPage > 0
-                            ? () => postProvider.previousPage()
-                            : null,
-                        icon: const Icon(Icons.chevron_left),
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        onPressed: postProvider.posts.length == postProvider.pageSize
-                            ? () => postProvider.nextPage()
-                            : null,
-                        icon: const Icon(Icons.chevron_right),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+      // Pagination Controls moved to bottomNavigationBar to avoid overlap with FAB
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              offset: const Offset(0, -2),
+              blurRadius: 10,
             ),
           ],
+        ),
+        child: SafeArea(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Page ${postProvider.currentPage + 1}',
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: postProvider.currentPage > 0
+                        ? () => postProvider.previousPage()
+                        : null,
+                    icon: const Icon(Icons.chevron_left),
+                  ),
+                  const SizedBox(width: 8),
+                  // Added padding to the right of the "Next" button to clear the FAB
+                  Padding(
+                    padding: EdgeInsets.only(right: authProvider.isLoggedIn ? 70 : 0),
+                    child: IconButton(
+                      onPressed: postProvider.posts.length == postProvider.pageSize
+                          ? () => postProvider.nextPage()
+                          : null,
+                      icon: const Icon(Icons.chevron_right),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
 
