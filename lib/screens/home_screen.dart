@@ -103,14 +103,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 itemCount: postProvider.posts.length,
                 separatorBuilder: (context, index) => const SizedBox(height: 8),
                 itemBuilder: (context, index) {
+                  final post = postProvider.posts[index];
                   return PostCard(
-                    id: postProvider.posts[index]['id'],
-                    title: postProvider.posts[index]['title'] ?? '',
-                    subtitle: postProvider.posts[index]['subtitle'] ?? '',
-                    content: postProvider.posts[index]['content'] ?? '',
-                    imageUrl: postProvider.posts[index]['image_url'],
-                    createdAt: postProvider.posts[index]['created_at'],
-                    username: postProvider.posts[index]['username'] ?? 'Unknown User',
+                    id: post['id'],
+                    authorId: post['user_id'] ?? '', // Passing the author's ID
+                    title: post['title'] ?? '',
+                    subtitle: post['subtitle'] ?? '',
+                    content: post['content'] ?? '',
+                    imageUrl: post['image_url'],
+                    createdAt: post['created_at'],
+                    username: post['username'] ?? 'Unknown User',
                     isLoggedIn: authProvider.isLoggedIn,
                     onRefresh: postProvider.fetchPosts,
                   );

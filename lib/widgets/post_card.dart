@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../screens/post_details_screen.dart';
 import '../screens/create_post_screen.dart';
 import 'package:intl/intl.dart';
@@ -11,6 +12,7 @@ class PostCard extends StatelessWidget {
   final String subtitle;
   final String content;
   final String? imageUrl;
+  final String authorId; // Added authorId
   final String username;
   final String? createdAt;
   final VoidCallback onRefresh;
@@ -20,6 +22,7 @@ class PostCard extends StatelessWidget {
   const PostCard({
     super.key,
     required this.id,
+    required this.authorId, // Added authorId
     required this.title,
     required this.subtitle,
     required this.content,
@@ -159,8 +162,8 @@ class PostCard extends StatelessWidget {
                         ),
                       ),
 
-                      // Edit/Delete actions for logged in users
-                      if (isLoggedIn)
+                      // Edit/Delete actions only for the post author
+                      if (isLoggedIn && authorId == Supabase.instance.client.auth.currentUser?.id)
                         Row(
                           children: [
                             IconButton(

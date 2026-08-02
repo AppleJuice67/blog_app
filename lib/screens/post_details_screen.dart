@@ -107,7 +107,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                       itemCount: imageUrls.length,
                       itemBuilder: (context, index) {
                         return GestureDetector(
-                          onTap: () => _showFullScreenImage(context, index),
+                          onTap: () => _showFullScreenImage(context, imageUrls, index, 'gallery_image'),
                           child: Hero(
                             tag: 'gallery_image_$index',
                             child: Image.network(
@@ -245,7 +245,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "Discussion (${comments.length})",
+                        "Comments (${comments.length})",
                         style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w800,
@@ -343,17 +343,31 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                         itemCount: commentImages.length,
                         itemBuilder: (context, index) {
                           final img = commentImages[index];
+                          final List<String> allCommentUrls =
+                              commentImages.map((e) => e['image_url'] as String).toList();
+
                           return Padding(
                             padding: const EdgeInsets.only(right: 8),
                             child: Stack(
                               children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.network(
-                                    img['image_url'],
-                                    width: 80,
-                                    height: 80,
-                                    fit: BoxFit.cover,
+                                GestureDetector(
+                                  onTap: () => _showFullScreenImage(
+                                    context,
+                                    allCommentUrls,
+                                    index,
+                                    'comment_${comment['id']}_image',
+                                  ),
+                                  child: Hero(
+                                    tag: 'comment_${comment['id']}_image_$index',
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.network(
+                                        img['image_url'],
+                                        width: 80,
+                                        height: 80,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
                                   ),
                                 ),
                                 // Allow author to delete specific image while editing
@@ -596,7 +610,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
   }
 
   // Opens an interactive full-screen image viewer
-  void _showFullScreenImage(BuildContext context, int initialIndex) {
+  void _showFullScreenImage(BuildContext context, List<String> urls, int initialIndex, String tagPrefix) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -609,7 +623,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
             elevation: 0,
           ),
           body: PageView.builder(
-            itemCount: imageUrls.length,
+            itemCount: urls.length,
             controller: PageController(initialPage: initialIndex),
             itemBuilder: (context, index) {
               return InteractiveViewer(
@@ -617,9 +631,9 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                 maxScale: 4.0,
                 child: Center(
                   child: Hero(
-                    tag: 'gallery_image_$index',
+                    tag: '${tagPrefix}_$index',
                     child: Image.network(
-                      imageUrls[index],
+                      urls[index],
                       fit: BoxFit.contain,
                       width: double.infinity,
                     ),
