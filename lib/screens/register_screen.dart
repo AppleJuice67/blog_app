@@ -1,5 +1,7 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
+import 'package:go_router/go_router.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -57,24 +59,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ElevatedButton(
               onPressed: () async {
                 try {
-
-                  final response = await Supabase.instance.client.auth.signUp(
+                  await context.read<AuthProvider>().register(
                     email: emailController.text.trim(),
                     password: passwordController.text.trim(),
+                    username: usernameController.text.trim(),
                   );
-
-                  final user = response.user;
-
-                  if (user != null) {
-
-                    await Supabase.instance.client
-                        .from('profiles')
-                        .insert({
-                      'id': user.id,
-                      'username': usernameController.text.trim(),
-                    });
-
-                  }
 
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -82,16 +71,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   );
 
-                  Navigator.pop(context);
-
+                  context.pop();
                 } catch (e) {
-
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(e.toString()),
                     ),
                   );
-
                 }
               },
               child: const Text('Register'),

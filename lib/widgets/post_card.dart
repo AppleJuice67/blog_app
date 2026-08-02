@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../screens/post_details_screen.dart';
 import '../screens/create_post_screen.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../providers/post_provider.dart';
 
 class PostCard extends StatelessWidget {
   final int id;
@@ -217,12 +218,7 @@ class PostCard extends StatelessWidget {
                               );
 
                               if (confirm == true) {
-                                await Supabase.instance.client
-                                    .from('posts')
-                                    .delete()
-                                    .eq('id', id);
-
-                                onRefresh();
+                                await context.read<PostProvider>().deletePost(id);
                               }
                             },
                           ),

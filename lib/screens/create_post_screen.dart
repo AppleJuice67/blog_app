@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import '../providers/post_provider.dart';
+
 
 
 class CreatePostScreen extends StatefulWidget {
@@ -152,41 +155,21 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
                 if (widget.id == null) {
 
-                  final user = Supabase.instance.client.auth.currentUser;
-
-                  final post = await Supabase.instance.client
-                      .from('posts')
-                      .insert({
-                    'title': titleController.text,
-                    'subtitle': subtitleController.text,
-                    'content': contentController.text,
-                    'user_id': user!.id,
-                  })
-                      .select()
-                      .single();
-
-                  final postId = post['id'];
-
-                  for (String url in imageUrls) {
-                    await Supabase.instance.client
-                        .from('post_images')
-                        .insert({
-                      'post_id': postId,
-                      'image_url': url,
-                    });
-                  }
+                  await context.read<PostProvider>().createPost(
+                    title: titleController.text,
+                    subtitle: subtitleController.text,
+                    content: contentController.text,
+                    imageUrls: imageUrls,
+                  );
 
                 } else {
 
-                  await Supabase.instance.client
-                      .from('posts')
-                      .update({
-                    'title': titleController.text,
-                    'subtitle': subtitleController.text,
-                    'content': contentController.text,
-
-                  })
-                      .eq('id', widget.id!);
+                  await context.read<PostProvider>().updatePost(
+                    id: widget.id!,
+                    title: titleController.text,
+                    subtitle: subtitleController.text,
+                    content: contentController.text,
+                  );
                 }
 
                 Navigator.pop(context);

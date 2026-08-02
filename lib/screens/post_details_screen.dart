@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:blog_app/providers/comment_provider.dart';
 
 class PostDetailsScreen extends StatefulWidget {
   final int postId;
@@ -25,150 +26,20 @@ class PostDetailsScreen extends StatefulWidget {
 class _PostDetailsScreenState extends State<PostDetailsScreen> {
 
   List<String> imageUrls = [];
-  List<Map<String, dynamic>> comments = [];
 
-  int? editingCommentId;
-  bool isEditing = false;
-
-  final commentController = TextEditingController();
-
-  final ImagePicker picker = ImagePicker();
-
-  List<XFile> selectedCommentImages = [];
-
-  Future<List<String>> uploadCommentImages() async {
-    List<String> imageUrls = [];
-
-    for (final image in selectedCommentImages) {
-      final fileName =
-          '${DateTime.now().millisecondsSinceEpoch}_${image.name}';
-
-      await Supabase.instance.client.storage
-          .from('comment-images')
-          .uploadBinary(
-        fileName,
-        await image.readAsBytes(),
-      );
-
-      final url = Supabase.instance.client.storage
-          .from('comment-images')
-          .getPublicUrl(fileName);
-
-      imageUrls.add(url);
-    }
-
-    return imageUrls;
-  }
-
-  Future<void> pickCommentImages() async {
-    final images = await picker.pickMultiImage();
-
-    if (images.isNotEmpty) {
-      setState(() {
-        selectedCommentImages = images;
-      });
-    }
-  }
-
-  Future<void> addComment() async {
-
-
-    try {
-      final user = Supabase.instance.client.auth.currentUser;
-
-      if (user == null) return;
-
-      List<String> imageUrls = [];
-
-      if (selectedCommentImages.isNotEmpty) {
-        imageUrls = await uploadCommentImages();
-      }
-
-      final comment = await Supabase.instance.client
-          .from('comments')
-          .insert({
-        'post_id': widget.postId,
-        'user_id': user.id,
-        'comment': commentController.text,
-      })
-          .select()
-          .single();
-
-      final commentId = comment['id'];
-
-      for (final url in imageUrls) {
-        await Supabase.instance.client
-            .from('comment_images')
-            .insert({
-          'comment_id': commentId,
-          'image_url': url,
-        });
-      }
-
-      commentController.clear();
-
-      selectedCommentImages.clear();
-
-      await loadComments();
-
-      setState(() {});
-    }catch (e) {
-      print(e);
-    }
-  }
-
-  Future<void> updateComment() async {
-    if (editingCommentId == null) return;
-
-    await Supabase.instance.client
-        .from('comments')
-        .update({
-      'comment': commentController.text,
-    })
-        .eq('id', editingCommentId!);
-
-    commentController.clear();
-
-    editingCommentId = null;
-    isEditing = false;
-
-    await loadComments();
-
-    setState(() {});
-  }
-
-  Future<void> loadComments() async {
-    final data = await Supabase.instance.client
-        .from('comments')
-        .select('*, comment_images(*)')
-        .eq('post_id', widget.postId)
-        .order('created_at');
-
-    List<Map<String, dynamic>> loadedComments = [];
-
-    for (final comment in data) {
-
-      final profile = await Supabase.instance.client
-          .from('profiles')
-          .select('username')
-          .eq('id', comment['user_id'])
-          .maybeSingle();
-
-      comment['username'] = profile?['username'] ?? 'Unknown User';
-
-      loadedComments.add(comment);
-    }
-
-    setState(() {
-      comments = loadedComments;
-    });
-  }
+  final editCommentController = TextEditingController();
+  final ScrollController scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     loadImages();
-    loadComments();
+    // Load comments using the provider after the first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<CommentProvider>().loadComments(widget.postId);
+      }
+    });
   }
 
   Future<void> loadImages() async {
@@ -185,11 +56,15 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final commentProvider = context.watch<CommentProvider>();
+    final comments = commentProvider.comments;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Post Details'),
       ),
       body: SingleChildScrollView(
+        controller: scrollController,
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -252,6 +127,11 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
 
             const SizedBox(height: 30),
 
+// COMMENT INPUT
+
+
+            const SizedBox(height: 30),
+
             const Divider(),
             const Divider(),
 
@@ -273,7 +153,6 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                 ),
               ],
             ),
-
             const SizedBox(height: 16),
 
             ...comments.map(
@@ -312,14 +191,55 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
 
                           const SizedBox(height: 6),
 
-                          Text(
+                          commentProvider.editingCommentId == comment['id']
+                              ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+
+                              TextField(
+                                controller: editCommentController,
+                                maxLines: 3,
+                                decoration: const InputDecoration(
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
+
+                              const SizedBox(height: 10),
+
+                              ElevatedButton.icon(
+                                onPressed: commentProvider.pickEditImages,
+                                icon: const Icon(Icons.image),
+                                label: const Text("Add Images"),
+                              ),
+
+                              if (commentProvider.selectedEditImages.isNotEmpty)
+                                SizedBox(
+                                  height: 80,
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: commentProvider.selectedEditImages.length,
+                                    itemBuilder: (context, index) {
+                                      return Padding(
+                                        padding: const EdgeInsets.only(right: 8),
+                                        child: Image.network(
+                                          commentProvider.selectedEditImages[index].path,
+                                          width: 80,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+
+                            ],
+                          )
+                              : Text(
                             comment['comment'],
                             style: const TextStyle(
                               fontSize: 15,
                             ),
                           ),
-
-                        ],
+                       ],
                       ),
 
                       const SizedBox(height: 10),
@@ -347,21 +267,21 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                                         fit: BoxFit.cover,
                                       ),
                                     ),
-
-                                    if (comment['user_id'] ==
-                                        Supabase.instance.client.auth.currentUser?.id)
+           // Comment X button issue
+                                    if (commentProvider.isEditing &&
+                                        commentProvider.editingCommentId == comment['id'] &&
+                                        comment['user_id'] ==
+                                            Supabase.instance.client.auth.currentUser?.id)
                                       Positioned(
                                         top: 4,
                                         right: 4,
                                         child: GestureDetector(
-                                          onTap: () async {
-                                            await Supabase.instance.client
-                                                .from('comment_images')
-                                                .delete()
-                                                .eq('id', image['id']);
-
-                                            await loadComments();
-                                          },
+                                        onTap: () async {
+                                          await commentProvider.deleteCommentImage(
+                                            image['id'],
+                                            widget.postId,
+                                          );
+                                        },
                                           child: Container(
                                             decoration: const BoxDecoration(
                                               color: Colors.red,
@@ -386,35 +306,75 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
 
                       if (comment['user_id'] ==
                           Supabase.instance.client.auth.currentUser?.id)
-                        Row(
+                        commentProvider.editingCommentId == comment['id']
+                            ? Row(
+                          children: [
+
+                            ElevatedButton.icon(
+                              onPressed: () async {
+                                await commentProvider.updateComment(
+                                  widget.postId,
+                                  editCommentController.text,
+                                );
+                                editCommentController.clear();
+                              },
+                              icon: const Icon(Icons.save),
+                              label: const Text("Save"),
+                            ),
+
+                            const SizedBox(width: 8),
+
+                            OutlinedButton(
+                              onPressed: () {
+                                commentProvider.clearEditState();
+                                editCommentController.clear();
+                              },
+                              child: const Text("Cancel"),
+                            ),
+
+                          ],
+                        )
+                        // Edit button editable right where it is.
+                            : Row(
                           children: [
 
                             IconButton(
                               icon: const Icon(Icons.edit),
                               onPressed: () {
-                                setState(() {
-                                  commentController.text = comment['comment'];
-                                  editingCommentId = comment['id'];
-                                  isEditing = true;
-                                });
+                                commentProvider.setEditingComment(comment['id']);
+                                editCommentController.text = comment['comment'];
                               },
                             ),
 
                             IconButton(
                               icon: const Icon(Icons.delete),
                               onPressed: () async {
+                                final shouldDelete = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text("Delete Comment"),
+                                    content: const Text(
+                                      "Are you sure you want to delete this comment?",
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context, false),
+                                        child: const Text("Cancel"),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () => Navigator.pop(context, true),
+                                        child: const Text("Delete"),
+                                      ),
+                                    ],
+                                  ),
+                                );
 
-                                await Supabase.instance.client
-                                    .from('comment_images')
-                                    .delete()
-                                    .eq('comment_id', comment['id']);
-
-                                await Supabase.instance.client
-                                    .from('comments')
-                                    .delete()
-                                    .eq('id', comment['id']);
-
-                                await loadComments();
+                                if (shouldDelete == true) {
+                                  await commentProvider.deleteComment(
+                                    comment['id'],
+                                    widget.postId,
+                                  );
+                                }
                               },
                             ),
 
@@ -434,97 +394,98 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
 
             const SizedBox(height: 20),
 
-            if (Supabase.instance.client.auth.currentUser != null) ...[
+          ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            border: const Border(
+              top: BorderSide(color: Colors.grey),
+            ),
+          ),
+          child: Supabase.instance.client.auth.currentUser != null
+              ? (commentProvider.isEditing
+              ? const SizedBox.shrink()
+              : Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
 
-              ElevatedButton.icon(
-                onPressed: pickCommentImages,
-                icon: const Icon(Icons.image),
-                label: const Text('Add Images'),
-              ),
-
-              if (selectedCommentImages.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: SizedBox(
-                    height: 70,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: selectedCommentImages.length,
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              selectedCommentImages[index].path,
-                              width: 70,
-                              height: 70,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-
-              TextField(
-                controller: commentController,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  hintText: 'Write a comment...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: isEditing ? updateComment : addComment,
-                  child: Text(
-                    isEditing
-                        ? 'Update Comment'
-                        : 'Post Comment',
-                  ),
-                ),
-              ),
-
-            ] else ...[
-
-              Card(
-                color: Colors.blue.shade50,
-                elevation: 0,
-                child: const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-
-                      Icon(
-                        Icons.lock_outline,
-                        color: Colors.blue,
-                      ),
-
-                      SizedBox(width: 10),
-
-                      Expanded(
-                        child: Text(
-                          "Login to write a comment or upload images.",
-                          style: TextStyle(
-                            fontSize: 15,
+              if (commentProvider.selectedCommentImages.isNotEmpty)
+                SizedBox(
+                  height: 70,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: commentProvider.selectedCommentImages.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            commentProvider.selectedCommentImages[index].path,
+                            width: 70,
+                            fit: BoxFit.cover,
                           ),
                         ),
-                      ),
-
-                    ],
+                      );
+                    },
                   ),
                 ),
+
+              if (commentProvider.selectedCommentImages.isNotEmpty)
+                const SizedBox(height: 10),
+
+              Row(
+                children: [
+
+                  Expanded(
+                    child: TextField(
+                      controller: editCommentController,
+                      maxLines: 1,
+                      decoration: InputDecoration(
+                        hintText: "Write a comment...",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 10,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: 8),
+
+                  IconButton(
+                    onPressed: commentProvider.pickCommentImages,
+                    icon: const Icon(Icons.image),
+                  ),
+
+                  IconButton(
+                    onPressed: () async {
+                      await commentProvider.addComment(
+                        widget.postId,
+                        editCommentController.text,
+                      );
+                      editCommentController.clear();
+                    },
+                    icon: const Icon(Icons.send),
+                  ),
+                ],
               ),
-            ]
-          ],
+            ],
+          ))
+              : const Padding(
+            padding: EdgeInsets.all(12),
+            child: Text(
+              "Login to write a comment.",
+              textAlign: TextAlign.center,
+            ),
+          ),
         ),
       ),
     );
