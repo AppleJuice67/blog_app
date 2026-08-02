@@ -32,10 +32,16 @@ class PostCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        // Subtle border for a clean, modern look
+        border: Border.all(color: Colors.grey.shade200),
+      ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(12),
         onTap: () {
           Navigator.push(
             context,
@@ -49,190 +55,168 @@ class PostCard extends StatelessWidget {
             ),
           );
         },
-        child: Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-
-              if (imageUrl != null && imageUrl!.isNotEmpty)
-                Image.network(
-                  imageUrl!,
-                  width: double.infinity,
-                  height: 220,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      height: 220,
-                      color: Colors.grey.shade300,
-                      child: const Center(
-                        child: Icon(
-                          Icons.broken_image,
-                          size: 60,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image section with a cleaner aspect ratio
+            if (imageUrl != null && imageUrl!.isNotEmpty)
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: Image.network(
+                    imageUrl!,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      color: Colors.grey.shade100,
+                      child: const Icon(Icons.image_not_supported_outlined, color: Colors.grey),
                     ),
-
-                    const SizedBox(height: 6),
-
-                    Text(
-                      "By $username",
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.blueGrey,
-                      ),
-                    ),
-
-                    const SizedBox(height: 4),
-
-                    Text(
-                      createdAt != null
-                          ? DateFormat('MMM dd, yyyy').format(
-                        DateTime.parse(createdAt!),
-                      )
-                          : 'Unknown date',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    Text(
-                      subtitle,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey,
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    Text(
-                      content,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 15,
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    Row(
-                      children: [
-
-                        const Icon(
-                          Icons.article_outlined,
-                          color: Colors.blue,
-                        ),
-
-                        const SizedBox(width: 6),
-
-                        const Text(
-                          "Read More",
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-
-                        const Spacer(),
-
-                        if (isLoggedIn) ...[
-
-                          IconButton(
-                            icon: const Icon(Icons.edit),
-                            onPressed: () async {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => CreatePostScreen(
-                                    id: id,
-                                    title: title,
-                                    subtitle: subtitle,
-                                    content: content,
-                                    imageUrl: imageUrl,
-                                  ),
-                                ),
-                              );
-
-                              onRefresh();
-                            },
-                          ),
-
-                          IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () async {
-
-                              final confirm = await showDialog<bool>(
-                                context: context,
-                                builder: (context) {
-                                  return AlertDialog(
-                                    title: const Text("Delete Post"),
-                                    content: const Text(
-                                      "Are you sure you want to delete this post?",
-                                    ),
-                                    actions: [
-
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context, false);
-                                        },
-                                        child: const Text("Cancel"),
-                                      ),
-
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          Navigator.pop(context, true);
-                                        },
-                                        child: const Text("Delete"),
-                                      ),
-
-                                    ],
-                                  );
-                                },
-                              );
-
-                              if (confirm == true) {
-                                await context.read<PostProvider>().deletePost(id);
-                              }
-                            },
-                          ),
-                        ],
-
-                        const Icon(Icons.arrow_forward_ios, size: 18),
-
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ],
-          ),
+
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Post title with professional typography
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF2D3436),
+                      height: 1.2,
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Meta information (Author & Date)
+                  Row(
+                    children: [
+                      const CircleAvatar(
+                        radius: 10,
+                        backgroundColor: Color(0xFFDFE6E9),
+                        child: Icon(Icons.person, size: 12, color: Colors.grey),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        username,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        "•",
+                        style: TextStyle(color: Colors.grey.shade400),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        createdAt != null
+                            ? DateFormat('MMM dd, yyyy').format(DateTime.parse(createdAt!))
+                            : 'Recently',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Subtitle / Teaser text
+                  Text(
+                    subtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.grey.shade600,
+                      height: 1.4,
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Bottom Action Bar
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // "Read Post" visual link
+                      Text(
+                        "Read Full Story",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+
+                      // Edit/Delete actions for logged in users
+                      if (isLoggedIn)
+                        Row(
+                          children: [
+                            IconButton(
+                              visualDensity: VisualDensity.compact,
+                              icon: const Icon(Icons.edit_outlined, size: 20),
+                              onPressed: () async {
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => CreatePostScreen(
+                                      id: id,
+                                      title: title,
+                                      subtitle: subtitle,
+                                      content: content,
+                                      imageUrl: imageUrl,
+                                    ),
+                                  ),
+                                );
+                                onRefresh();
+                              },
+                            ),
+                            IconButton(
+                              visualDensity: VisualDensity.compact,
+                              icon: const Icon(Icons.delete_outline, size: 20, color: Colors.redAccent),
+                              onPressed: () async {
+                                final confirm = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text("Delete Post"),
+                                    content: const Text("This action cannot be undone."),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context, false),
+                                        child: const Text("Cancel"),
+                                      ),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                                        onPressed: () => Navigator.pop(context, true),
+                                        child: const Text("Delete", style: TextStyle(color: Colors.white)),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                if (confirm == true) {
+                                  await context.read<PostProvider>().deletePost(id);
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
