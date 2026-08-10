@@ -4,8 +4,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class PostProvider extends ChangeNotifier {
   List<Map<String, dynamic>> posts = [];
 
-
-
   int currentPage = 0;
   final int pageSize = 5;
 

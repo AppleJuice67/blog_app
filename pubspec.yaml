@@ -28,9 +28,13 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  google_fonts: ^6.2.1
   provider: ^6.1.5
+# This is for time and date.
   intl: ^0.20.2
+# this is for image picker
   image_picker: ^1.1.2
+
   flutter:
     sdk: flutter
 

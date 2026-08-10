@@ -43,3 +43,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# AI Assistant artifacts and temporary files
+.artifacts/
+.gradle_home/

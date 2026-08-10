@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart'; // Added google_fonts for newspaper typography
 import 'providers/auth_provider.dart';
 import 'providers/post_provider.dart';
 import 'providers/comment_provider.dart';
@@ -43,9 +44,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       routerConfig: appRouter,
-      title: 'Blog App',
+      title: 'The Daily Bugle',
       debugShowCheckedModeBanner: false,
-      // Adding custom scroll behavior to enable mouse dragging on Web/Desktop
       scrollBehavior: const MaterialScrollBehavior().copyWith(
         dragDevices: {
           PointerDeviceKind.mouse,
@@ -56,58 +56,89 @@ class MyApp extends StatelessWidget {
       ),
       theme: ThemeData(
         useMaterial3: true,
-        // Using a more sophisticated color scheme for a professional blog feel
+        // SPIDER-MAN & DAILY BUGLE THEME
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF2D3436),
-          primary: const Color(0xFF0984E3),
-          secondary: const Color(0xFF6C5CE7),
-          surface: Colors.white,
-          background: const Color(0xFFF8F9FA),
+          seedColor: const Color(0xFFC0392B), // Spidey Red
+          primary: const Color(0xFFC0392B),
+          secondary: const Color(0xFF2980B9), // Spidey Blue
+          surface: const Color(0xFFF4F1EA),   // Newsprint
+          background: const Color(0xFFF4F1EA),
+          onBackground: Colors.black,
+          onSurface: Colors.black,
         ),
-        // Modern typography for readability
-        textTheme: const TextTheme(
-          displayLarge: TextStyle(
-            fontSize: 32,
+        // NEWSPAPER TYPOGRAPHY
+        textTheme: TextTheme(
+          displayLarge: GoogleFonts.bebasNeue(
+            fontSize: 48,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF2D3436),
-            letterSpacing: -0.5,
+            color: Colors.black,
+            letterSpacing: 1.2,
           ),
-          titleLarge: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF2D3436),
+          displayMedium: GoogleFonts.bebasNeue(
+            fontSize: 36,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
           ),
-          bodyLarge: TextStyle(
+          titleLarge: GoogleFonts.bebasNeue(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+            letterSpacing: 0.5,
+          ),
+          bodyLarge: GoogleFonts.playfairDisplay(
+            fontSize: 18,
+            height: 1.5,
+            color: Colors.black87,
+          ),
+          bodyMedium: GoogleFonts.playfairDisplay(
             fontSize: 16,
-            height: 1.6, // Better line height for reading
-            color: Color(0xFF636E72),
+            height: 1.4,
+            color: Colors.black87,
           ),
         ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.white,
-          foregroundColor: Color(0xFF2D3436),
-          centerTitle: false,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          titleTextStyle: TextStyle(
-            fontSize: 20,
+        appBarTheme: AppBarTheme(
+          backgroundColor: const Color(0xFFC0392B), // Spidey Red
+          foregroundColor: Colors.white,
+          centerTitle: true,
+          elevation: 4, // More elevation for a "heroic" pop
+          shadowColor: Colors.black87,
+          titleTextStyle: GoogleFonts.bebasNeue(
+            fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF2D3436),
+            color: Colors.white,
+            letterSpacing: 1.0,
           ),
+          iconTheme: const IconThemeData(color: Colors.white),
+          actionsIconTheme: const IconThemeData(color: Colors.white),
         ),
         cardTheme: CardThemeData(
-          elevation: 0,
+          color: Colors.white,
+          elevation: 4, // 3D comic effect
+          shadowColor: Colors.black,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: Colors.grey.shade200), // Subtle borders instead of heavy shadows
+            borderRadius: BorderRadius.circular(4), // Slightly rounded for hero feel
+            side: const BorderSide(color: Colors.black, width: 2),
           ),
           clipBehavior: Clip.antiAlias,
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            elevation: 0,
+            backgroundColor: const Color(0xFFC0392B),
+            foregroundColor: Colors.white,
+            elevation: 6, // COMIC POP: Strong shadow
+            shadowColor: Colors.black,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8), // Heroic curve
+              side: const BorderSide(color: Colors.black, width: 2), // Bold ink outline
+            ),
+            textStyle: GoogleFonts.bebasNeue(fontSize: 18, letterSpacing: 1.5),
+          ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.white,
+            textStyle: GoogleFonts.bebasNeue(fontSize: 18, letterSpacing: 1),
           ),
         ),
       ),

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart'; // Import for newspaper fonts
 import 'package:blog_app/providers/comment_provider.dart';
+import '../widgets/web_painter.dart'; // Spider-web decoration
 
 class PostDetailsScreen extends StatefulWidget {
   final int postId;
@@ -20,17 +22,12 @@ class PostDetailsScreen extends StatefulWidget {
 
   @override
   State<PostDetailsScreen> createState() => _PostDetailsScreenState();
-
 }
 
 class _PostDetailsScreenState extends State<PostDetailsScreen> {
-
   List<String> imageUrls = [];
-
   final editCommentController = TextEditingController();
   final ScrollController scrollController = ScrollController();
-
-  // PageController for the image gallery
   final PageController _imagePageController = PageController();
   int _currentImageIndex = 0;
 
@@ -38,7 +35,6 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
   void initState() {
     super.initState();
     loadImages();
-    // Load comments using the provider after the first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<CommentProvider>().loadComments(widget.postId);
@@ -61,8 +57,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
         .eq('post_id', widget.postId);
 
     setState(() {
-      imageUrls =
-          data.map<String>((e) => e['image_url'] as String).toList();
+      imageUrls = data.map<String>((e) => e['image_url'] as String).toList();
     });
   }
 
@@ -73,13 +68,17 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
     final currentUser = Supabase.instance.client.auth.currentUser;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF4F1EA), // Newsprint background
       appBar: AppBar(
-        title: const Text('Article'),
+        flexibleSpace: CustomPaint(
+          painter: WebPainter(color: Colors.white24),
+          child: Container(),
+        ),
+        title: const Text('EXTRA EDITION'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.share_outlined),
-            onPressed: () {}, // Future feature
+            icon: const Icon(Icons.share),
+            onPressed: () {},
           ),
           const SizedBox(width: 8),
         ],
@@ -89,182 +88,131 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Professional Gallery Header with PageView and Indicators
+            // Gallery Section with thick black border and heroic flair
             if (imageUrls.isNotEmpty)
-              Stack(
-                alignment: Alignment.bottomCenter,
-                children: [
-                  Container(
-                    height: 350,
-                    width: double.infinity,
-                    child: PageView.builder(
-                      controller: _imagePageController,
-                      onPageChanged: (index) {
-                        setState(() {
-                          _currentImageIndex = index;
-                        });
-                      },
-                      itemCount: imageUrls.length,
-                      itemBuilder: (context, index) {
-                        return GestureDetector(
-                          onTap: () => _showFullScreenImage(context, imageUrls, index, 'gallery_image'),
-                          child: Hero(
-                            tag: 'gallery_image_$index',
-                            child: Image.network(
-                              imageUrls[index],
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  Container(color: Colors.grey.shade100, child: const Icon(Icons.broken_image)),
+              Container(
+                margin: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.black, width: 3),
+                  boxShadow: const [
+                    BoxShadow(color: Colors.black38, offset: Offset(4, 4)),
+                  ],
+                ),
+                child: Stack(
+                  alignment: Alignment.bottomCenter,
+                  children: [
+                    Container(
+                      height: 400,
+                      width: double.infinity,
+                      child: PageView.builder(
+                        controller: _imagePageController,
+                        onPageChanged: (index) {
+                          setState(() {
+                            _currentImageIndex = index;
+                          });
+                        },
+                        itemCount: imageUrls.length,
+                        itemBuilder: (context, index) {
+                          return GestureDetector(
+                            onTap: () => _showFullScreenImage(context, imageUrls, index, 'gallery_image'),
+                            child: Hero(
+                              tag: 'gallery_image_$index',
+                              child: Image.network(
+                                imageUrls[index],
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Container(color: Colors.grey.shade200, child: const Icon(Icons.broken_image)),
+                              ),
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
-                  ),
-
-                  // Dots Indicator overlay
-                  if (imageUrls.length > 1)
-                    Positioned(
-                      bottom: 20,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          imageUrls.length,
-                          (index) => AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            height: 8,
-                            width: _currentImageIndex == index ? 24 : 8,
-                            decoration: BoxDecoration(
-                              color: _currentImageIndex == index
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Colors.white.withOpacity(0.5),
-                              borderRadius: BorderRadius.circular(4),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
-                                )
-                              ],
-                            ),
+                    if (imageUrls.length > 1)
+                      Positioned(
+                        bottom: 10,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          color: const Color(0xFF2980B9), // Spidey Blue for labels
+                          child: Text(
+                            '${_currentImageIndex + 1} OF ${imageUrls.length} EVIDENCE SAMPLES',
+                            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
-                    ),
-
-                  // Image count overlay
-                  Positioned(
-                    top: 10,
-                    right: 20,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.4),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        '${_currentImageIndex + 1} / ${imageUrls.length}',
-                        style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
 
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Main Article Header
+                  // MASSIVE HEADLINE
                   Text(
-                    widget.title,
-                    style: const TextStyle(
-                      fontSize: 32,
+                    widget.title.toUpperCase(),
+                    style: GoogleFonts.bebasNeue(
+                      fontSize: 56,
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFF2D3436),
-                      height: 1.2,
+                      color: Colors.black,
+                      height: 0.9,
                     ),
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
 
-                  // Subtitle / Abstract
+                  // SUB-HEADLINE
                   Text(
-                    widget.subtitle,
-                    style: TextStyle(
+                    widget.subtitle.toUpperCase(),
+                    style: const TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey.shade700,
-                      fontStyle: FontStyle.italic,
-                      height: 1.5,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.black,
+                      letterSpacing: 0.5,
                     ),
                   ),
 
-                  const SizedBox(height: 24),
-
-                  // Divider for visual separation
-                  Container(
-                    width: 60,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Divider(color: Colors.black, thickness: 3),
                   ),
 
-                  const SizedBox(height: 32),
-
-                  // Main Article Content with optimized reading typography
+                  // MAIN CONTENT with drop cap effect manually simulated or just strong typography
                   Text(
                     widget.content,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      height: 1.8,
-                      color: Color(0xFF2D3436),
+                    style: GoogleFonts.playfairDisplay(
+                      fontSize: 20,
+                      height: 1.6,
+                      color: Colors.black,
                     ),
                   ),
                 ],
               ),
             ),
 
-            // Comments Section Header
+            // COMMENTS SECTION - Styled like a "Letters to the Editor" section
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8F9FA),
-                border: Border(
-                  top: BorderSide(color: Colors.grey.shade200),
-                ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                border: Border(top: BorderSide(color: Colors.black, width: 2)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Comments (${comments.length})",
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF2D3436),
-                        ),
-                      ),
-                      if (currentUser == null)
-                        Text(
-                          "Log in to participate",
-                          style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
-                        ),
-                    ],
+                  Text(
+                    "CITIZEN FEEDBACK (${comments.length})",
+                    style: GoogleFonts.bebasNeue(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
                   ),
-                  const SizedBox(height: 24),
-
-                  // Comments Feed
+                  const Divider(color: Colors.black, thickness: 2),
+                  const SizedBox(height: 16),
                   ...comments.map((comment) => _buildCommentItem(comment, commentProvider, currentUser)).toList(),
-
-                  const SizedBox(height: 80), // Space at bottom for navigation bar
+                  const SizedBox(height: 80),
                 ],
               ),
             ),
@@ -275,167 +223,105 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
     );
   }
 
-  // Helper to build a clean comment item
   Widget _buildCommentItem(Map<String, dynamic> comment, CommentProvider provider, User? currentUser) {
     final bool isAuthor = comment['user_id'] == currentUser?.id;
     final bool isEditing = provider.editingCommentId == comment['id'];
     final commentImages = (comment['comment_images'] as List? ?? []);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      child: Row(
+      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.black12, width: 1),
+      ),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // User Avatar Initial
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-            child: Text(
-              comment['username'][0].toUpperCase(),
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                comment['username'].toUpperCase(),
+                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 1),
+              ),
+              Text(
+                comment['created_at'] != null
+                    ? DateFormat('MMM dd, hh:mm a').format(DateTime.parse(comment['created_at']))
+                    : '',
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const Divider(color: Colors.black12),
+          const SizedBox(height: 8),
+          if (isEditing)
+            _buildEditCommentField(comment, provider)
+          else
+            Text(
+              comment['comment'],
+              style: GoogleFonts.playfairDisplay(fontSize: 16, color: Colors.black87),
+            ),
+
+          if (commentImages.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: SizedBox(
+                height: 100,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: commentImages.length,
+                  itemBuilder: (context, index) {
+                    final img = commentImages[index];
+                    final List<String> allCommentUrls =
+                        commentImages.map((e) => e['image_url'] as String).toList();
+
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: GestureDetector(
+                        onTap: () => _showFullScreenImage(
+                          context,
+                          allCommentUrls,
+                          index,
+                          'comment_${comment['id']}_image',
+                        ),
+                        child: Hero(
+                          tag: 'comment_${comment['id']}_image_$index',
+                          child: Container(
+                            decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 1)),
+                            child: Image.network(img['image_url'], width: 100, height: 100, fit: BoxFit.cover),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 12),
 
-          // Comment Content
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      comment['username'],
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-                    ),
-                    Text(
-                      comment['created_at'] != null
-                          ? DateFormat('MMM dd, hh:mm a').format(DateTime.parse(comment['created_at']))
-                          : '',
-                      style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-
-                // Edit Mode vs View Mode
-                if (isEditing)
-                  _buildEditCommentField(comment, provider)
-                else
-                  Text(
-                    comment['comment'],
-                    style: const TextStyle(fontSize: 15, height: 1.4, color: Color(0xFF2D3436)),
+          if (isAuthor && !isEditing)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      provider.setEditingComment(comment['id']);
+                      editCommentController.text = comment['comment'];
+                    },
+                    child: const Text("EDIT", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.black)),
                   ),
-
-                // Comment Images
-                if (commentImages.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 10),
-                    child: SizedBox(
-                      height: 80,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: commentImages.length,
-                        itemBuilder: (context, index) {
-                          final img = commentImages[index];
-                          final List<String> allCommentUrls =
-                              commentImages.map((e) => e['image_url'] as String).toList();
-
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: Stack(
-                              children: [
-                                GestureDetector(
-                                  onTap: () => _showFullScreenImage(
-                                    context,
-                                    allCommentUrls,
-                                    index,
-                                    'comment_${comment['id']}_image',
-                                  ),
-                                  child: Hero(
-                                    tag: 'comment_${comment['id']}_image_$index',
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image.network(
-                                        img['image_url'],
-                                        width: 80,
-                                        height: 80,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                // Allow author to delete specific image while editing
-                                if (isEditing && isAuthor)
-                                  Positioned(
-                                    top: 4,
-                                    right: 4,
-                                    child: GestureDetector(
-                                      onTap: () => provider.deleteCommentImage(img['id'], widget.postId),
-                                      child: Container(
-                                        padding: const EdgeInsets.all(2),
-                                        decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                                        child: const Icon(Icons.close, size: 12, color: Colors.white),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ),
+                  TextButton(
+                    onPressed: () => _showDeleteConfirm(comment['id'], provider),
+                    child: const Text("DELETE", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFFC0392B))),
                   ),
-
-                // Action row for comment author
-                if (isAuthor && !isEditing)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Row(
-                      children: [
-                        TextButton(
-                          onPressed: () {
-                            provider.setEditingComment(comment['id']);
-                            editCommentController.text = comment['comment'];
-                          },
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: const Size(40, 30),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: const Text("Edit", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                        ),
-                        const SizedBox(width: 12),
-                        TextButton(
-                          onPressed: () => _showDeleteConfirm(comment['id'], provider),
-                          style: TextButton.styleFrom(
-                            foregroundColor: Colors.redAccent,
-                            padding: EdgeInsets.zero,
-                            minimumSize: const Size(40, 30),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: const Text("Delete", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                const SizedBox(height: 8),
-                const Divider(height: 1),
-              ],
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );
   }
 
-  // Inline editor for comments
   Widget _buildEditCommentField(Map<String, dynamic> comment, CommentProvider provider) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -443,144 +329,53 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
         TextField(
           controller: editCommentController,
           maxLines: null,
-          autofocus: true,
-          decoration: const InputDecoration(
-            isDense: true,
-            border: InputBorder.none,
-            hintText: "Edit your comment...",
-          ),
-          style: const TextStyle(fontSize: 15),
+          decoration: const InputDecoration(border: OutlineInputBorder(), hintText: "REVISE STATEMENT..."),
         ),
-        const SizedBox(height: 8),
         Row(
           children: [
-            ElevatedButton(
-              onPressed: () async {
-                await provider.updateComment(widget.postId, editCommentController.text);
-                editCommentController.clear();
-              },
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                minimumSize: const Size(60, 32),
-              ),
-              child: const Text("Save", style: TextStyle(fontSize: 12)),
+            TextButton(
+              onPressed: () async => await provider.updateComment(widget.postId, editCommentController.text),
+              child: const Text("SAVE"),
             ),
-            const SizedBox(width: 8),
             TextButton(
               onPressed: () => provider.clearEditState(),
-              style: TextButton.styleFrom(minimumSize: const Size(60, 32)),
-              child: const Text("Cancel", style: TextStyle(fontSize: 12)),
-            ),
-            const Spacer(),
-            IconButton(
-              icon: const Icon(Icons.add_photo_alternate_outlined, size: 20),
-              onPressed: () => provider.pickEditImages(),
+              child: const Text("CANCEL"),
             ),
           ],
         ),
-        if (provider.selectedEditImages.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: SizedBox(
-              height: 50,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: provider.selectedEditImages.length,
-                itemBuilder: (context, index) => Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: Image.network(provider.selectedEditImages[index].path, width: 50, fit: BoxFit.cover),
-                  ),
-                ),
-              ),
-            ),
-          ),
       ],
     );
   }
 
-  // Clean bottom bar for comment input
   Widget _buildBottomInput(CommentProvider provider, User? currentUser) {
-    if (currentUser == null) return const SizedBox.shrink();
-    if (provider.isEditing) return const SizedBox.shrink();
+    if (currentUser == null || provider.isEditing) return const SizedBox.shrink();
 
     return SafeArea(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.white,
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -2))],
+          border: Border(top: BorderSide(color: Colors.black, width: 2)),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: Row(
           children: [
-            if (provider.selectedCommentImages.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: SizedBox(
-                  height: 60,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: provider.selectedCommentImages.length,
-                    itemBuilder: (context, index) => Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(provider.selectedCommentImages[index].path, width: 60, fit: BoxFit.cover),
-                      ),
-                    ),
-                  ),
+            Expanded(
+              child: TextField(
+                controller: editCommentController,
+                decoration: const InputDecoration(
+                  hintText: "SUBMIT YOUR REPORT...",
+                  border: InputBorder.none,
                 ),
               ),
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF1F2F6),
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Row(
-                      children: [
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: TextField(
-                            controller: editCommentController,
-                            maxLines: null,
-                            decoration: const InputDecoration(
-                              hintText: "Share your thoughts...",
-                              border: InputBorder.none,
-                              isDense: true,
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.camera_alt_outlined, color: Colors.grey),
-                          onPressed: () => provider.pickCommentImages(),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                GestureDetector(
-                  onTap: () async {
-                    if (editCommentController.text.trim().isNotEmpty) {
-                      await provider.addComment(widget.postId, editCommentController.text);
-                      editCommentController.clear();
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
-                  ),
-                ),
-              ],
+            ),
+            IconButton(
+              icon: const Icon(Icons.send, color: Color(0xFF2980B9)), // Spidey Blue for action
+              onPressed: () async {
+                if (editCommentController.text.trim().isNotEmpty) {
+                  await provider.addComment(widget.postId, editCommentController.text);
+                  editCommentController.clear();
+                }
+              },
             ),
           ],
         ),
@@ -592,15 +387,12 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Delete Comment"),
-        content: const Text("Are you sure? This cannot be undone."),
+        backgroundColor: const Color(0xFFF4F1EA),
+        shape: const RoundedRectangleBorder(side: BorderSide(color: Colors.black, width: 2)),
+        title: const Text("REDACT COMMENT?"),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel")),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text("Delete", style: TextStyle(color: Colors.white)),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("NO")),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("YES")),
         ],
       ),
     );
@@ -609,7 +401,6 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
     }
   }
 
-  // Opens an interactive full-screen image viewer
   void _showFullScreenImage(BuildContext context, List<String> urls, int initialIndex, String tagPrefix) {
     Navigator.push(
       context,

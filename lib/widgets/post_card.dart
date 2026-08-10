@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:google_fonts/google_fonts.dart'; // Import for newspaper fonts
 import '../screens/post_details_screen.dart';
 import '../screens/create_post_screen.dart';
 import 'package:intl/intl.dart';
@@ -12,17 +13,16 @@ class PostCard extends StatelessWidget {
   final String subtitle;
   final String content;
   final String? imageUrl;
-  final String authorId; // Added authorId
+  final String authorId;
   final String username;
   final String? createdAt;
   final VoidCallback onRefresh;
   final bool isLoggedIn;
 
-
   const PostCard({
     super.key,
     required this.id,
-    required this.authorId, // Added authorId
+    required this.authorId,
     required this.title,
     required this.subtitle,
     required this.content,
@@ -36,15 +36,13 @@ class PostCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        // Subtle border for a clean, modern look
-        border: Border.all(color: Colors.grey.shade200),
+        // Thick black border like a newspaper section
+        border: Border.all(color: Colors.black, width: 2),
       ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
         onTap: () {
           Navigator.push(
             context,
@@ -61,10 +59,13 @@ class PostCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image section with a cleaner aspect ratio
+            // IMAGE SECTION with a thick black frame
             if (imageUrl != null && imageUrl!.isNotEmpty)
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              Container(
+                margin: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.black, width: 2),
+                ),
                 child: AspectRatio(
                   aspectRatio: 16 / 9,
                   child: Image.network(
@@ -72,103 +73,103 @@ class PostCard extends StatelessWidget {
                     width: double.infinity,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => Container(
-                      color: Colors.grey.shade100,
-                      child: const Icon(Icons.image_not_supported_outlined, color: Colors.grey),
+                      color: Colors.grey.shade200,
+                      child: const Icon(Icons.broken_image, color: Colors.black),
                     ),
                   ),
                 ),
               ),
 
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Post title with professional typography
+                  // Loud, uppercase headline using Bebas Neue
                   Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF2D3436),
-                      height: 1.2,
+                    title.toUpperCase(),
+                    style: GoogleFonts.bebasNeue(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.black,
+                      height: 1.1,
                     ),
                   ),
 
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
 
-                  // Meta information (Author & Date)
+                  // Newspaper By-line
                   Row(
                     children: [
-                      const CircleAvatar(
-                        radius: 10,
-                        backgroundColor: Color(0xFFDFE6E9),
-                        child: Icon(Icons.person, size: 12, color: Colors.grey),
-                      ),
-                      const SizedBox(width: 6),
                       Text(
-                        username,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade700,
+                        "BY ${username.toUpperCase()}",
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        "•",
-                        style: TextStyle(color: Colors.grey.shade400),
-                      ),
-                      const SizedBox(width: 8),
+                      const Spacer(),
                       Text(
                         createdAt != null
-                            ? DateFormat('MMM dd, yyyy').format(DateTime.parse(createdAt!))
-                            : 'Recently',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade500,
+                            ? DateFormat('MMMM dd, yyyy').format(DateTime.parse(createdAt!)).toUpperCase()
+                            : 'LATEST EDITION',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ],
                   ),
 
-                  const SizedBox(height: 12),
+                  const Divider(color: Colors.black, thickness: 1.5),
 
-                  // Subtitle / Teaser text
+                  // Subtitle using Serif font
                   Text(
                     subtitle,
-                    maxLines: 2,
+                    maxLines: 3,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.grey.shade600,
-                      height: 1.4,
+                    style: GoogleFonts.playfairDisplay(
+                      fontSize: 16,
+                      color: Colors.black87,
+                      height: 1.3,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
 
-                  // Bottom Action Bar
+                  // Bottom Action Row
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // "Read Post" visual link
-                      Text(
-                        "Read Full Story",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: Theme.of(context).colorScheme.primary,
+                      // "READ MORE" button styled like a heroic label
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2980B9), // Spidey Blue for highlights
+                          border: Border.all(color: Colors.black, width: 2),
+                          boxShadow: const [
+                            BoxShadow(color: Colors.black, offset: Offset(2, 2)),
+                          ],
+                        ),
+                        child: const Text(
+                          "FULL STORY",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1,
+                          ),
                         ),
                       ),
 
-                      // Edit/Delete actions only for the post author
                       if (isLoggedIn && authorId == Supabase.instance.client.auth.currentUser?.id)
                         Row(
                           children: [
                             IconButton(
                               visualDensity: VisualDensity.compact,
-                              icon: const Icon(Icons.edit_outlined, size: 20),
+                              icon: const Icon(Icons.edit, size: 20, color: Colors.black),
                               onPressed: () async {
                                 await Navigator.push(
                                   context,
@@ -187,22 +188,24 @@ class PostCard extends StatelessWidget {
                             ),
                             IconButton(
                               visualDensity: VisualDensity.compact,
-                              icon: const Icon(Icons.delete_outline, size: 20, color: Colors.redAccent),
+                              icon: const Icon(Icons.delete, size: 20, color: Color(0xFFC0392B)),
                               onPressed: () async {
                                 final confirm = await showDialog<bool>(
                                   context: context,
                                   builder: (context) => AlertDialog(
-                                    title: const Text("Delete Post"),
-                                    content: const Text("This action cannot be undone."),
+                                    backgroundColor: const Color(0xFFF4F1EA),
+                                    shape: const RoundedRectangleBorder(side: BorderSide(color: Colors.black, width: 2)),
+                                    title: Text("REDACT STORY?", style: GoogleFonts.bebasNeue(fontSize: 24)),
+                                    content: const Text("This action will permanently delete this article."),
                                     actions: [
                                       TextButton(
                                         onPressed: () => Navigator.pop(context, false),
-                                        child: const Text("Cancel"),
+                                        child: const Text("CANCEL", style: TextStyle(color: Colors.black)),
                                       ),
                                       ElevatedButton(
-                                        style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                                        style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
                                         onPressed: () => Navigator.pop(context, true),
-                                        child: const Text("Delete", style: TextStyle(color: Colors.white)),
+                                        child: const Text("DELETE"),
                                       ),
                                     ],
                                   ),
