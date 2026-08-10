@@ -88,11 +88,12 @@ class PostCard extends StatelessWidget {
                   // Loud, uppercase headline using Bebas Neue
                   Text(
                     title.toUpperCase(),
-                    maxLines: 2, // Limit to 2 lines to save space
+                    maxLines: 2, // Strict 2-line limit
                     overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center, // Centered Text
+                    softWrap: true, // Allow wrapping for sentences
+                    textAlign: TextAlign.center,
                     style: GoogleFonts.bebasNeue(
-                      fontSize: 26, // Slightly smaller to be more compact
+                      fontSize: 22, // Reduced size to prevent layout breaks
                       fontWeight: FontWeight.w900,
                       color: Colors.black,
                       height: 1.1,
@@ -103,12 +104,12 @@ class PostCard extends StatelessWidget {
 
                   // Newspaper By-line centered
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center, // Horizontal centering
                     children: [
                       Text(
                         "BY ${username.toUpperCase()}",
                         style: const TextStyle(
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 1,
                         ),
@@ -121,7 +122,7 @@ class PostCard extends StatelessWidget {
                             ? DateFormat('MMM dd, yyyy').format(DateTime.parse(createdAt!)).toUpperCase()
                             : 'LATEST EDITION',
                         style: const TextStyle(
-                          fontSize: 10,
+                          fontSize: 9,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -136,11 +137,11 @@ class PostCard extends StatelessWidget {
                   // Subtitle using Serif font, centered
                   Text(
                     subtitle,
-                    maxLines: 2, // Also limit subtitle to keep cards small
+                    maxLines: 2, 
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.playfairDisplay(
-                      fontSize: 15,
+                      fontSize: 14,
                       color: Colors.black87,
                       height: 1.3,
                       fontWeight: FontWeight.w600,

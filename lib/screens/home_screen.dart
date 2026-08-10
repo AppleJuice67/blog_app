@@ -77,6 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 800),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch, // Force all children to fill the column width
               children: [
                 // DAILY BUGLE BRANDING SECTION
                 Container(
@@ -95,6 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       Column(
+                        crossAxisAlignment: CrossAxisAlignment.center, // Center text within the branding box
                         children: [
                           // Iconic Newspaper Title
                           Text(
@@ -133,11 +135,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
 
+                const SizedBox(height: 12), // Added spacing to avoid overlap
+
                 // Featured Stories Headline
                 if (postProvider.posts.isNotEmpty)
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8), // Aligned to 16
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -162,6 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   ),
+
 
                 // Main Feed
                 Expanded(
