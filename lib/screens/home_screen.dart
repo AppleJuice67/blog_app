@@ -109,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           // The decorative black lines and metadata
                           Container(
                             margin: const EdgeInsets.symmetric(horizontal: 16),
-                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
                             decoration: const BoxDecoration(
                               border: Border.symmetric(
                                 horizontal: BorderSide(color: Colors.black, width: 3),
@@ -137,7 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (postProvider.posts.isNotEmpty)
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8), // Aligned to 16
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [

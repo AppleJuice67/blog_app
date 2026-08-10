@@ -83,65 +83,75 @@ class PostCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center, // Centered Column
                 children: [
                   // Loud, uppercase headline using Bebas Neue
                   Text(
                     title.toUpperCase(),
+                    maxLines: 2, // Limit to 2 lines to save space
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center, // Centered Text
                     style: GoogleFonts.bebasNeue(
-                      fontSize: 28,
+                      fontSize: 26, // Slightly smaller to be more compact
                       fontWeight: FontWeight.w900,
                       color: Colors.black,
                       height: 1.1,
                     ),
                   ),
 
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
 
-                  // Newspaper By-line
+                  // Newspaper By-line centered
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         "BY ${username.toUpperCase()}",
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: 11,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 1,
                         ),
                       ),
-                      const Spacer(),
+                      const SizedBox(width: 8),
+                      const Text("•", style: TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(width: 8),
                       Text(
                         createdAt != null
-                            ? DateFormat('MMMM dd, yyyy').format(DateTime.parse(createdAt!)).toUpperCase()
+                            ? DateFormat('MMM dd, yyyy').format(DateTime.parse(createdAt!)).toUpperCase()
                             : 'LATEST EDITION',
                         style: const TextStyle(
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ],
                   ),
 
-                  const Divider(color: Colors.black, thickness: 1.5),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8.0),
+                    child: Divider(color: Colors.black, thickness: 1.5),
+                  ),
 
-                  // Subtitle using Serif font
+                  // Subtitle using Serif font, centered
                   Text(
                     subtitle,
-                    maxLines: 3,
+                    maxLines: 2, // Also limit subtitle to keep cards small
                     overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
                     style: GoogleFonts.playfairDisplay(
-                      fontSize: 16,
+                      fontSize: 15,
                       color: Colors.black87,
                       height: 1.3,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
 
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
 
                   // Bottom Action Row
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.center, // Centered Action
                     children: [
                       // "READ MORE" button styled like a heroic label
                       Container(
@@ -157,68 +167,73 @@ class PostCard extends StatelessWidget {
                           "FULL STORY",
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 12,
+                            fontSize: 11,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 1,
                           ),
                         ),
                       ),
-
-                      if (isLoggedIn && authorId == Supabase.instance.client.auth.currentUser?.id)
-                        Row(
-                          children: [
-                            IconButton(
-                              visualDensity: VisualDensity.compact,
-                              icon: const Icon(Icons.edit, size: 20, color: Colors.black),
-                              onPressed: () async {
-                                await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => CreatePostScreen(
-                                      id: id,
-                                      title: title,
-                                      subtitle: subtitle,
-                                      content: content,
-                                      imageUrl: imageUrl,
-                                    ),
-                                  ),
-                                );
-                                onRefresh();
-                              },
-                            ),
-                            IconButton(
-                              visualDensity: VisualDensity.compact,
-                              icon: const Icon(Icons.delete, size: 20, color: Color(0xFFC0392B)),
-                              onPressed: () async {
-                                final confirm = await showDialog<bool>(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    backgroundColor: const Color(0xFFF4F1EA),
-                                    shape: const RoundedRectangleBorder(side: BorderSide(color: Colors.black, width: 2)),
-                                    title: Text("REDACT STORY?", style: GoogleFonts.bebasNeue(fontSize: 24)),
-                                    content: const Text("This action will permanently delete this article."),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context, false),
-                                        child: const Text("CANCEL", style: TextStyle(color: Colors.black)),
-                                      ),
-                                      ElevatedButton(
-                                        style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
-                                        onPressed: () => Navigator.pop(context, true),
-                                        child: const Text("DELETE"),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                                if (confirm == true) {
-                                  await context.read<PostProvider>().deletePost(id);
-                                }
-                              },
-                            ),
-                          ],
-                        ),
                     ],
                   ),
+                  
+                  // Edit/Delete actions for author (positioned below the story button if present)
+                  if (isLoggedIn && authorId == Supabase.instance.client.auth.currentUser?.id)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            icon: const Icon(Icons.edit, size: 18, color: Colors.black),
+                            onPressed: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => CreatePostScreen(
+                                    id: id,
+                                    title: title,
+                                    subtitle: subtitle,
+                                    content: content,
+                                    imageUrl: imageUrl,
+                                  ),
+                                ),
+                              );
+                              onRefresh();
+                            },
+                          ),
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            icon: const Icon(Icons.delete, size: 18, color: Color(0xFFC0392B)),
+                            onPressed: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  backgroundColor: const Color(0xFFF4F1EA),
+                                  shape: const RoundedRectangleBorder(side: BorderSide(color: Colors.black, width: 2)),
+                                  title: Text("REDACT STORY?", style: GoogleFonts.bebasNeue(fontSize: 24)),
+                                  content: const Text("This action will permanently delete this article."),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, false),
+                                      child: const Text("CANCEL", style: TextStyle(color: Colors.black)),
+                                    ),
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+                                      onPressed: () => Navigator.pop(context, true),
+                                      child: const Text("DELETE"),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (confirm == true) {
+                                await context.read<PostProvider>().deletePost(id);
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
                 ],
               ),
             ),
