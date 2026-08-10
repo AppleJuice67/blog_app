@@ -85,138 +85,143 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
       ),
       body: SingleChildScrollView(
         controller: scrollController,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Gallery Section with thick black border and heroic flair
-            if (imageUrls.isNotEmpty)
-              Container(
-                margin: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black, width: 3),
-                  boxShadow: const [
-                    BoxShadow(color: Colors.black38, offset: Offset(4, 4)),
-                  ],
-                ),
-                child: Stack(
-                  alignment: Alignment.bottomCenter,
-                  children: [
-                    Container(
-                      height: 400,
-                      width: double.infinity,
-                      child: PageView.builder(
-                        controller: _imagePageController,
-                        onPageChanged: (index) {
-                          setState(() {
-                            _currentImageIndex = index;
-                          });
-                        },
-                        itemCount: imageUrls.length,
-                        itemBuilder: (context, index) {
-                          return GestureDetector(
-                            onTap: () => _showFullScreenImage(context, imageUrls, index, 'gallery_image'),
-                            child: Hero(
-                              tag: 'gallery_image_$index',
-                              child: Image.network(
-                                imageUrls[index],
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    Container(color: Colors.grey.shade200, child: const Icon(Icons.broken_image)),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Gallery Section with thick black border and heroic flair
+                if (imageUrls.isNotEmpty)
+                  Container(
+                    margin: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.black, width: 3),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black38, offset: Offset(4, 4)),
+                      ],
                     ),
-                    if (imageUrls.length > 1)
-                      Positioned(
-                        bottom: 10,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                          color: const Color(0xFF2980B9), // Spidey Blue for labels
-                          child: Text(
-                            '${_currentImageIndex + 1} OF ${imageUrls.length} EVIDENCE SAMPLES',
-                            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                    child: Stack(
+                      alignment: Alignment.bottomCenter,
+                      children: [
+                        Container(
+                          height: 400,
+                          width: double.infinity,
+                          child: PageView.builder(
+                            controller: _imagePageController,
+                            onPageChanged: (index) {
+                              setState(() {
+                                _currentImageIndex = index;
+                              });
+                            },
+                            itemCount: imageUrls.length,
+                            itemBuilder: (context, index) {
+                              return GestureDetector(
+                                onTap: () => _showFullScreenImage(context, imageUrls, index, 'gallery_image'),
+                                child: Hero(
+                                  tag: 'gallery_image_$index',
+                                  child: Image.network(
+                                    imageUrls[index],
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        Container(color: Colors.grey.shade200, child: const Icon(Icons.broken_image)),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ),
+                        if (imageUrls.length > 1)
+                          Positioned(
+                            bottom: 10,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                              color: const Color(0xFF2980B9), // Spidey Blue for labels
+                              child: Text(
+                                '${_currentImageIndex + 1} OF ${imageUrls.length} EVIDENCE SAMPLES',
+                                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // MASSIVE HEADLINE
+                      Text(
+                        widget.title.toUpperCase(),
+                        style: GoogleFonts.bebasNeue(
+                          fontSize: 56,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.black,
+                          height: 0.9,
+                        ),
                       ),
-                  ],
+
+                      const SizedBox(height: 12),
+
+                      // SUB-HEADLINE
+                      Text(
+                        widget.subtitle.toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.black,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: Divider(color: Colors.black, thickness: 3),
+                      ),
+
+                      // MAIN CONTENT with drop cap effect manually simulated or just strong typography
+                      Text(
+                        widget.content,
+                        style: GoogleFonts.playfairDisplay(
+                          fontSize: 20,
+                          height: 1.6,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
 
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // MASSIVE HEADLINE
-                  Text(
-                    widget.title.toUpperCase(),
-                    style: GoogleFonts.bebasNeue(
-                      fontSize: 56,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.black,
-                      height: 0.9,
-                    ),
+                // COMMENTS SECTION - Styled like a "Letters to the Editor" section
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    border: Border(top: BorderSide(color: Colors.black, width: 2)),
                   ),
-
-                  const SizedBox(height: 12),
-
-                  // SUB-HEADLINE
-                  Text(
-                    widget.subtitle.toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.black,
-                      letterSpacing: 0.5,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "CITIZEN FEEDBACK (${comments.length})",
+                        style: GoogleFonts.bebasNeue(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const Divider(color: Colors.black, thickness: 2),
+                      const SizedBox(height: 16),
+                      ...comments.map((comment) => _buildCommentItem(comment, commentProvider, currentUser)).toList(),
+                      const SizedBox(height: 80),
+                    ],
                   ),
-
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    child: Divider(color: Colors.black, thickness: 3),
-                  ),
-
-                  // MAIN CONTENT with drop cap effect manually simulated or just strong typography
-                  Text(
-                    widget.content,
-                    style: GoogleFonts.playfairDisplay(
-                      fontSize: 20,
-                      height: 1.6,
-                      color: Colors.black,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-
-            // COMMENTS SECTION - Styled like a "Letters to the Editor" section
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                border: Border(top: BorderSide(color: Colors.black, width: 2)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "CITIZEN FEEDBACK (${comments.length})",
-                    style: GoogleFonts.bebasNeue(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const Divider(color: Colors.black, thickness: 2),
-                  const SizedBox(height: 16),
-                  ...comments.map((comment) => _buildCommentItem(comment, commentProvider, currentUser)).toList(),
-                  const SizedBox(height: 80),
-                ],
-              ),
-            ),
-          ],
+          ),
         ),
       ),
       bottomNavigationBar: _buildBottomInput(commentProvider, currentUser),

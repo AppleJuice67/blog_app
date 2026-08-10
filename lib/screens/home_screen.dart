@@ -73,120 +73,125 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: RefreshIndicator(
         onRefresh: () => postProvider.fetchPosts(),
-        child: Column(
-          children: [
-            // DAILY BUGLE BRANDING SECTION
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: const Border(bottom: BorderSide(color: Colors.black, width: 3)),
-              ),
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Stack(
-                children: [
-                  // Background Web
-                  Positioned.fill(
-                    child: CustomPaint(
-                      painter: WebPainter(color: Colors.black12),
-                    ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: Column(
+              children: [
+                // DAILY BUGLE BRANDING SECTION
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: const Border(bottom: BorderSide(color: Colors.black, width: 3)),
                   ),
-                  Column(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Stack(
                     children: [
-                      // Iconic Newspaper Title
-                      Text(
-                        "DAILY BUGLE",
-                        style: GoogleFonts.bebasNeue(
-                          fontSize: 76,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.black,
-                          letterSpacing: 3,
+                      // Background Web
+                      Positioned.fill(
+                        child: CustomPaint(
+                          painter: WebPainter(color: Colors.black12),
                         ),
                       ),
-                      // The decorative black lines and metadata
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 16),
-                        padding: const EdgeInsets.symmetric(vertical: 6),
-                        decoration: const BoxDecoration(
-                          border: Border.symmetric(
-                            horizontal: BorderSide(color: Colors.black, width: 3),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text("SPECIAL EDITION", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1)),
-                            Text(
-                              DateFormat('EEEE, MMMM dd, yyyy').format(DateTime.now()).toUpperCase(),
-                              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11),
+                      Column(
+                        children: [
+                          // Iconic Newspaper Title
+                          Text(
+                            "DAILY BUGLE",
+                            style: GoogleFonts.bebasNeue(
+                              fontSize: 76,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.black,
+                              letterSpacing: 3,
                             ),
-                            const Text("PRICE 50¢", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
-                          ],
-                        ),
+                          ),
+                          // The decorative black lines and metadata
+                          Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 16),
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            decoration: const BoxDecoration(
+                              border: Border.symmetric(
+                                horizontal: BorderSide(color: Colors.black, width: 3),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text("SPECIAL EDITION", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1)),
+                                Text(
+                                  DateFormat('EEEE, MMMM dd, yyyy').format(DateTime.now()).toUpperCase(),
+                                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11),
+                                ),
+                                const Text("PRICE 50¢", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-
-            // Featured Stories Headline
-            if (postProvider.posts.isNotEmpty)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      "FACT OR FICTION",
-                      style: GoogleFonts.bebasNeue(
-                        fontSize: 42,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const Text(
-                      "LATEST NEWS FROM THE CITY",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 16,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Divider(color: Colors.black, thickness: 3),
-                  ],
                 ),
-              ),
 
-            // Main Feed
-            Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                itemCount: postProvider.posts.length,
-                separatorBuilder: (context, index) => const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: Divider(color: Colors.black26),
+                // Featured Stories Headline
+                if (postProvider.posts.isNotEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          "FACT OR FICTION",
+                          style: GoogleFonts.bebasNeue(
+                            fontSize: 42,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                        const Text(
+                          "LATEST NEWS FROM THE CITY",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 16,
+                            letterSpacing: 1,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Divider(color: Colors.black, thickness: 3),
+                      ],
+                    ),
+                  ),
+
+                // Main Feed
+                Expanded(
+                  child: ListView.separated(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    itemCount: postProvider.posts.length,
+                    separatorBuilder: (context, index) => const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: Divider(color: Colors.black26),
+                    ),
+                    itemBuilder: (context, index) {
+                      final post = postProvider.posts[index];
+                      return PostCard(
+                        id: post['id'],
+                        authorId: post['user_id'] ?? '',
+                        title: post['title'] ?? '',
+                        subtitle: post['subtitle'] ?? '',
+                        content: post['content'] ?? '',
+                        imageUrl: post['image_url'],
+                        createdAt: post['created_at'],
+                        username: post['username'] ?? 'Unknown User',
+                        isLoggedIn: authProvider.isLoggedIn,
+                        onRefresh: postProvider.fetchPosts,
+                      );
+                    },
+                  ),
                 ),
-                itemBuilder: (context, index) {
-                  final post = postProvider.posts[index];
-                  return PostCard(
-                    id: post['id'],
-                    authorId: post['user_id'] ?? '',
-                    title: post['title'] ?? '',
-                    subtitle: post['subtitle'] ?? '',
-                    content: post['content'] ?? '',
-                    imageUrl: post['image_url'],
-                    createdAt: post['created_at'],
-                    username: post['username'] ?? 'Unknown User',
-                    isLoggedIn: authProvider.isLoggedIn,
-                    onRefresh: postProvider.fetchPosts,
-                  );
-                },
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
       bottomNavigationBar: Container(
