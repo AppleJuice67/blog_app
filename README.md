@@ -1,6 +1,13 @@
-# blog_app
+# blog_app (The Daily Bugle)
 
-A new Flutter project.
+A heroic Flutter blog application inspired by the Daily Bugle from Spider-Man.
+
+## Live Demo
+Check out the live site here: **[https://applejuice67.github.io/blog_app/](https://applejuice67.github.io/blog_app/)**
+
+## Deployment
+
+This project is set up for automatic deployment to GitHub Pages via GitHub Actions. Simply push to the `main` branch, and the site will update automatically.
 
 ## Getting Started
 
