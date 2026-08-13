@@ -76,128 +76,122 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 800),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch, // Force all children to fill the column width
-              children: [
-                // DAILY BUGLE BRANDING SECTION
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: const Border(bottom: BorderSide(color: Colors.black, width: 3)),
-                  ),
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Stack(
-                    children: [
-                      // Background Web
-                      Positioned.fill(
-                        child: CustomPaint(
-                          painter: WebPainter(color: Colors.black12),
-                        ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.center, // Center text within the branding box
-                        children: [
-                          // Iconic Newspaper Title
-                          Text(
-                            "DAILY BUGLE",
-                            style: GoogleFonts.bebasNeue(
-                              fontSize: 76,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.black,
-                              letterSpacing: 3,
-                            ),
-                          ),
-                          // The decorative black lines and metadata
-                          Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 16),
-                            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-                            decoration: const BoxDecoration(
-                              border: Border.symmetric(
-                                horizontal: BorderSide(color: Colors.black, width: 3),
+            child: CustomScrollView( // Using CustomScrollView to make everything scroll together
+              slivers: [
+                // 1. DAILY BUGLE BRANDING (Now as a Sliver)
+                SliverToBoxAdapter(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: const Border(bottom: BorderSide(color: Colors.black, width: 3)),
+                    ),
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 8), // More compact vertical padding
+                    child: Stack(
+                      children: [
+                        Positioned.fill(child: CustomPaint(painter: WebPainter(color: Colors.black12))),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            // Shrunk Branding for better viewability
+                            Text(
+                              "DAILY BUGLE",
+                              style: GoogleFonts.bebasNeue(
+                                fontSize: 54, // Reduced from 76
+                                fontWeight: FontWeight.w900,
+                                color: Colors.black,
+                                letterSpacing: 2,
                               ),
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text("SPECIAL EDITION", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1)),
-                                Text(
-                                  DateFormat('EEEE, MMMM dd, yyyy').format(DateTime.now()).toUpperCase(),
-                                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11),
-                                ),
-                                const Text("PRICE 50¢", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
-                              ],
+                            Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 16),
+                              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                              decoration: const BoxDecoration(
+                                border: Border.symmetric(horizontal: BorderSide(color: Colors.black, width: 2)),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text("SPECIAL EDITION", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 1)),
+                                  Text(
+                                    DateFormat('EEEE, MMM dd, yyyy').format(DateTime.now()).toUpperCase(),
+                                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 9),
+                                  ),
+                                  const Text("PRICE 50¢", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 12), // Added spacing to avoid overlap
-
-                // Featured Stories Headline
-                if (postProvider.posts.isNotEmpty)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          "FACT OR FICTION",
-                          style: GoogleFonts.bebasNeue(
-                            fontSize: 42,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
+                          ],
                         ),
-                        const Text(
-                          "LATEST NEWS FROM THE CITY",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w900,
-                            fontSize: 16,
-                            letterSpacing: 1,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Divider(color: Colors.black, thickness: 3),
                       ],
                     ),
                   ),
+                ),
 
-
-                // Main Feed
-                Expanded(
-                  child: ListView.separated(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    itemCount: postProvider.posts.length,
-                    separatorBuilder: (context, index) => const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20),
-                      child: Divider(color: Colors.black26),
+                // 2. FEATURED STORIES HEADER (Now as a Sliver)
+                if (postProvider.posts.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            "FACT OR FICTION",
+                            style: GoogleFonts.bebasNeue(
+                              fontSize: 32, // Reduced from 42
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          const Text(
+                            "LATEST NEWS FROM THE CITY",
+                            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 1),
+                          ),
+                          const SizedBox(height: 4),
+                          const Divider(color: Colors.black, thickness: 2),
+                        ],
+                      ),
                     ),
-                    itemBuilder: (context, index) {
+                  ),
+
+                // 3. MAIN BLOG FEED
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
                       final post = postProvider.posts[index];
-                      return PostCard(
-                        id: post['id'],
-                        authorId: post['user_id'] ?? '',
-                        title: post['title'] ?? '',
-                        subtitle: post['subtitle'] ?? '',
-                        content: post['content'] ?? '',
-                        imageUrl: post['image_url'],
-                        createdAt: post['created_at'],
-                        username: post['username'] ?? 'Unknown User',
-                        isLoggedIn: authProvider.isLoggedIn,
-                        onRefresh: postProvider.fetchPosts,
-                        // SPIDER-MAN THEME: Passing the interaction data to the card
-                        heroCount: post['hero_count'] ?? 0,
-                        menaceCount: post['menace_count'] ?? 0,
-                        userVote: post['user_vote'],
+                      return Column(
+                        children: [
+                          PostCard(
+                            id: post['id'],
+                            authorId: post['user_id'] ?? '',
+                            title: post['title'] ?? '',
+                            subtitle: post['subtitle'] ?? '',
+                            content: post['content'] ?? '',
+                            imageUrl: post['image_url'],
+                            createdAt: post['created_at'],
+                            username: post['username'] ?? 'Unknown User',
+                            isLoggedIn: authProvider.isLoggedIn,
+                            onRefresh: postProvider.fetchPosts,
+                            heroCount: post['hero_count'] ?? 0,
+                            menaceCount: post['menace_count'] ?? 0,
+                            userVote: post['user_vote'],
+                          ),
+                          if (index < postProvider.posts.length - 1)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 20),
+                              child: Divider(color: Colors.black26),
+                            ),
+                        ],
                       );
                     },
+                    childCount: postProvider.posts.length,
                   ),
                 ),
+                
+                // Bottom padding to ensure last post is clear of nav bar
+                const SliverToBoxAdapter(child: SizedBox(height: 40)),
               ],
             ),
           ),

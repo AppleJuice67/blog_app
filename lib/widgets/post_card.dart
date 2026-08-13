@@ -6,6 +6,7 @@ import '../screens/create_post_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/post_provider.dart';
+import 'pixel_spidey_icon.dart'; // SPIDER-MAN THEME: Pixel Art Reactions
 
 class PostCard extends StatelessWidget {
   final int id;
@@ -19,8 +20,7 @@ class PostCard extends StatelessWidget {
   final VoidCallback onRefresh;
   final bool isLoggedIn;
   
-  // SPIDER-MAN THEME: New fields for the "Hero or Menace" voting system
-  // We use these to display how many citizens have voted and what the user's current stance is.
+  // SPIDER-MAN THEME: Interaction data
   final int heroCount;
   final int menaceCount;
   final String? userVote;
@@ -45,10 +45,9 @@ class PostCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), // Tightened margin
       decoration: BoxDecoration(
         color: Colors.white,
-        // Thick black border like a newspaper section
         border: Border.all(color: Colors.black, width: 2),
       ),
       child: InkWell(
@@ -61,7 +60,6 @@ class PostCard extends StatelessWidget {
                 title: title,
                 subtitle: subtitle,
                 content: content,
-                // SPIDER-MAN THEME: Passing interaction data to the details screen
                 heroCount: heroCount,
                 menaceCount: menaceCount,
                 userVote: userVote,
@@ -70,12 +68,12 @@ class PostCard extends StatelessWidget {
           );
         },
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // IMAGE SECTION with a thick black frame
+            // IMAGE SECTION
             if (imageUrl != null && imageUrl!.isNotEmpty)
               Container(
-                margin: const EdgeInsets.all(8),
+                margin: const EdgeInsets.all(4), // Shrunk margin
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.black, width: 2),
                 ),
@@ -94,135 +92,103 @@ class PostCard extends StatelessWidget {
               ),
 
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.fromLTRB(8, 8, 8, 12), // Shrunk padding
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center, // Centered Column
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Loud, uppercase headline using Bebas Neue
                   Text(
                     title.toUpperCase(),
-                    maxLines: 2, // Strict 2-line limit
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    softWrap: true, // Allow wrapping for sentences
+                    softWrap: true,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.bebasNeue(
-                      fontSize: 22, // Reduced size to prevent layout breaks
+                      fontSize: 22,
                       fontWeight: FontWeight.w900,
                       color: Colors.black,
-                      height: 1.1,
+                      height: 1.0,
                     ),
                   ),
 
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
 
-                  // Newspaper By-line centered
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center, // Horizontal centering
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         "BY ${username.toUpperCase()}",
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1,
-                        ),
+                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.5),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       const Text("•", style: TextStyle(fontWeight: FontWeight.bold)),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       Text(
                         createdAt != null
                             ? DateFormat('MMM dd, yyyy').format(DateTime.parse(createdAt!)).toUpperCase()
-                            : 'LATEST EDITION',
-                        style: const TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                        ),
+                            : 'LATEST',
+                        style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
 
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8.0),
-                    child: Divider(color: Colors.black, thickness: 1.5),
-                  ),
+                  const Divider(color: Colors.black, thickness: 1.5, height: 12),
 
-                  // Subtitle using Serif font, centered
                   Text(
                     subtitle,
                     maxLines: 2, 
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.playfairDisplay(
-                      fontSize: 14,
+                      fontSize: 13,
                       color: Colors.black87,
-                      height: 1.3,
+                      height: 1.2,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
 
-                  // SPIDER-MAN THEME: The Hero or Menace interaction bar
-                  // This allows users to vote on whether Spidey (or the post author) is a hero or a menace.
+                  // SPIDER-MAN THEME: Pixel Spidey Reaction Bar
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // HERO BUTTON (Red Spidey)
                       _buildInteractionButton(
                         context: context,
                         label: "HERO!",
                         count: heroCount,
-                        imageUrl: "https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/spider-man-icon.png",
+                        isSymbiote: false,
                         isActive: userVote == 'hero',
-                        activeColor: const Color(0xFFC0392B), // Heroic Red
+                        activeColor: const Color(0xFFC0392B),
                         onTap: () => context.read<PostProvider>().toggleInteraction(id, 'hero'),
                       ),
-                      const SizedBox(width: 12),
-                      // MENACE BUTTON (Black Spidey)
+                      const SizedBox(width: 8),
                       _buildInteractionButton(
                         context: context,
                         label: "MENACE!",
                         count: menaceCount,
-                        imageUrl: "https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/spider-man-icon.png",
-                        isBlackMask: true, // We will tint this black
+                        isSymbiote: true,
                         isActive: userVote == 'menace',
-                        activeColor: Colors.black, // Symbiote Black
+                        activeColor: Colors.black,
                         onTap: () => context.read<PostProvider>().toggleInteraction(id, 'menace'),
                       ),
                     ],
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
 
-                  // Bottom Action Row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center, // Centered Action
-                    children: [
-                      // "READ MORE" button styled like a heroic label
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF2980B9), // Spidey Blue for highlights
-                          border: Border.all(color: Colors.black, width: 2),
-                          boxShadow: const [
-                            BoxShadow(color: Colors.black, offset: Offset(2, 2)),
-                          ],
-                        ),
-                        child: const Text(
-                          "FULL STORY",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1,
-                          ),
-                        ),
-                      ),
-                    ],
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2980B9),
+                      border: Border.all(color: Colors.black, width: 2),
+                      boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(2, 2))],
+                    ),
+                    child: const Text(
+                      "FULL STORY",
+                      style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1),
+                    ),
                   ),
                   
-                  // Edit/Delete actions for author (positioned below the story button if present)
                   if (isLoggedIn && authorId == Supabase.instance.client.auth.currentUser?.id)
                     Padding(
                       padding: const EdgeInsets.only(top: 8.0),
@@ -231,7 +197,7 @@ class PostCard extends StatelessWidget {
                         children: [
                           IconButton(
                             visualDensity: VisualDensity.compact,
-                            icon: const Icon(Icons.edit, size: 18, color: Colors.black),
+                            icon: const Icon(Icons.edit, size: 16, color: Colors.black),
                             onPressed: () async {
                               await Navigator.push(
                                 context,
@@ -250,7 +216,7 @@ class PostCard extends StatelessWidget {
                           ),
                           IconButton(
                             visualDensity: VisualDensity.compact,
-                            icon: const Icon(Icons.delete, size: 18, color: Color(0xFFC0392B)),
+                            icon: const Icon(Icons.delete, size: 16, color: Color(0xFFC0392B)),
                             onPressed: () async {
                               final confirm = await showDialog<bool>(
                                 context: context,
@@ -289,23 +255,20 @@ class PostCard extends StatelessWidget {
     );
   }
 
-  // SPIDER-MAN THEME: Helper to build the heroic interaction buttons
-  // Refined for Version 2.0 with Mask Images and Badge Shapes.
+  // SPIDER-MAN THEME: Updated for Pixel Spidey Icons
   Widget _buildInteractionButton({
     required BuildContext context,
     required String label,
     required int count,
-    required String imageUrl,
+    required bool isSymbiote,
     required bool isActive,
     required Color activeColor,
     required VoidCallback onTap,
-    bool isBlackMask = false,
   }) {
-    // We only show the active color if the user is logged in AND has voted.
     final bool showActive = isLoggedIn && isActive;
 
     return InkWell(
-      borderRadius: BorderRadius.circular(20), // Round interaction area
+      borderRadius: BorderRadius.circular(20),
       onTap: isLoggedIn ? onTap : () {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("CITIZEN: YOU MUST LOGIN TO VOTE!")),
@@ -313,43 +276,26 @@ class PostCard extends StatelessWidget {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           color: showActive ? activeColor : Colors.white,
-          // Rounder, badge-like shape instead of a box
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.black, width: 2),
           boxShadow: [
-            BoxShadow(
-              color: Colors.black,
-              offset: showActive ? const Offset(1, 1) : const Offset(4, 4),
-            ),
+            BoxShadow(color: Colors.black, offset: showActive ? const Offset(1, 1) : const Offset(3, 3)),
           ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // SPIDEY MASK IMAGE
-            // We use a ColorFiltered to tint the mask black for the Menace button
-            ColorFiltered(
-              colorFilter: ColorFilter.mode(
-                isBlackMask ? (showActive ? Colors.white : Colors.black) : (showActive ? Colors.white : Colors.red.shade700),
-                BlendMode.srcIn,
-              ),
-              child: Image.network(
-                imageUrl,
-                height: 20,
-                width: 20,
-                errorBuilder: (context, error, stackTrace) => const Icon(Icons.face, size: 20),
-              ),
-            ),
-            const SizedBox(width: 8),
+            PixelSpideyIcon(size: 18, isSymbiote: isSymbiote), // Custom Pixel Art Icon
+            const SizedBox(width: 6),
             Text(
               "$label $count",
               style: GoogleFonts.bebasNeue(
-                fontSize: 16,
+                fontSize: 14,
                 color: showActive ? Colors.white : Colors.black,
-                letterSpacing: 1.2,
+                letterSpacing: 1,
               ),
             ),
           ],

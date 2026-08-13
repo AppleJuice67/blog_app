@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart'; // Import for newspaper fonts
 import 'package:blog_app/providers/comment_provider.dart';
 import 'package:blog_app/providers/post_provider.dart'; // Added missing import for Hero/Menace logic
 import '../widgets/web_painter.dart'; // Spider-web decoration
+import '../widgets/pixel_spidey_icon.dart'; // SPIDER-MAN THEME: Pixel Art Reactions
 
 class PostDetailsScreen extends StatefulWidget {
   final int postId;
@@ -195,7 +196,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                             context: context,
                             label: "HERO!",
                             count: widget.heroCount,
-                            imageUrl: "https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/spider-man-icon.png",
+                            isSymbiote: false,
                             isActive: widget.userVote == 'hero',
                             activeColor: const Color(0xFFC0392B),
                             onTap: () => context.read<PostProvider>().toggleInteraction(widget.postId, 'hero'),
@@ -205,8 +206,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                             context: context,
                             label: "MENACE!",
                             count: widget.menaceCount,
-                            imageUrl: "https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/spider-man-icon.png",
-                            isBlackMask: true,
+                            isSymbiote: true,
                             isActive: widget.userVote == 'menace',
                             activeColor: Colors.black,
                             onTap: () => context.read<PostProvider>().toggleInteraction(widget.postId, 'menace'),
@@ -487,11 +487,10 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
     required BuildContext context,
     required String label,
     required int count,
-    required String imageUrl,
+    required bool isSymbiote,
     required bool isActive,
     required Color activeColor,
     required VoidCallback onTap,
-    bool isBlackMask = false,
   }) {
     final bool isLoggedIn = Supabase.instance.client.auth.currentUser != null;
     final bool showActive = isLoggedIn && isActive;
@@ -513,25 +512,14 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
           boxShadow: [
             BoxShadow(
               color: Colors.black,
-              offset: showActive ? const Offset(1, 1) : const Offset(4, 4),
+              offset: showActive ? const Offset(1, 1) : const Offset(3, 3),
             ),
           ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ColorFiltered(
-              colorFilter: ColorFilter.mode(
-                isBlackMask ? (showActive ? Colors.white : Colors.black) : (showActive ? Colors.white : Colors.red.shade700),
-                BlendMode.srcIn,
-              ),
-              child: Image.network(
-                imageUrl,
-                height: 20,
-                width: 20,
-                errorBuilder: (context, error, stackTrace) => const Icon(Icons.face, size: 20),
-              ),
-            ),
+            PixelSpideyIcon(size: 20, isSymbiote: isSymbiote),
             const SizedBox(width: 8),
             Text(
               "$label $count",
