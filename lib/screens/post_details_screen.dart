@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart'; // Import for newspaper fonts
 import 'package:blog_app/providers/comment_provider.dart';
+import 'package:blog_app/providers/post_provider.dart'; // Added missing import for Hero/Menace logic
 import '../widgets/web_painter.dart'; // Spider-web decoration
 
 class PostDetailsScreen extends StatefulWidget {
