@@ -73,6 +73,23 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // SPIDER-MAN THEME: Watching the PostProvider to get live updates for Hero/Menace counts
+    final postProvider = context.watch<PostProvider>();
+    
+    // Find the latest data for this specific post from the provider's list
+    final currentPost = postProvider.posts.firstWhere(
+      (p) => p['id'] == widget.postId,
+      orElse: () => {
+        'hero_count': widget.heroCount,
+        'menace_count': widget.menaceCount,
+        'user_vote': widget.userVote,
+      },
+    );
+
+    final heroCount = currentPost['hero_count'] ?? 0;
+    final menaceCount = currentPost['menace_count'] ?? 0;
+    final userVote = currentPost['user_vote'];
+
     final commentProvider = context.watch<CommentProvider>();
     final comments = commentProvider.comments;
     final currentUser = Supabase.instance.client.auth.currentUser;
@@ -195,9 +212,9 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                           _buildInteractionButton(
                             context: context,
                             label: "HERO!",
-                            count: widget.heroCount,
+                            count: heroCount,
                             isSymbiote: false,
-                            isActive: widget.userVote == 'hero',
+                            isActive: userVote == 'hero',
                             activeColor: const Color(0xFFC0392B),
                             onTap: () => context.read<PostProvider>().toggleInteraction(widget.postId, 'hero'),
                           ),
@@ -205,9 +222,9 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                           _buildInteractionButton(
                             context: context,
                             label: "MENACE!",
-                            count: widget.menaceCount,
+                            count: menaceCount,
                             isSymbiote: true,
-                            isActive: widget.userVote == 'menace',
+                            isActive: userVote == 'menace',
                             activeColor: Colors.black,
                             onTap: () => context.read<PostProvider>().toggleInteraction(widget.postId, 'menace'),
                           ),
