@@ -54,33 +54,42 @@ class PostProvider extends ChangeNotifier {
       }
 
       // SPIDER-MAN THEME: Fetching Hero/Menace interaction counts
-      // This part counts how many people voted 'hero' or 'menace' for each post
-      final heroCount = await Supabase.instance.client
-          .from('post_interactions')
-          .select()
-          .eq('post_id', post['id'])
-          .eq('type', 'hero');
-      
-      final menaceCount = await Supabase.instance.client
-          .from('post_interactions')
-          .select()
-          .eq('post_id', post['id'])
-          .eq('type', 'menace');
-
-      post['hero_count'] = (heroCount as List).length;
-      post['menace_count'] = (menaceCount as List).length;
-
-      // Checking if the current user has already voted
-      final currentUser = Supabase.instance.client.auth.currentUser;
-      if (currentUser != null) {
-        final userInteraction = await Supabase.instance.client
+      // We wrap this in a try-catch so that if the interaction table isn't created yet,
+      // the rest of the blog posts still load correctly.
+      try {
+        final heroCount = await Supabase.instance.client
             .from('post_interactions')
-            .select('type')
+            .select()
             .eq('post_id', post['id'])
-            .eq('user_id', currentUser.id)
-            .maybeSingle();
+            .eq('type', 'hero');
         
-        post['user_vote'] = userInteraction?['type']; // 'hero', 'menace', or null
+        final menaceCount = await Supabase.instance.client
+            .from('post_interactions')
+            .select()
+            .eq('post_id', post['id'])
+            .eq('type', 'menace');
+
+        post['hero_count'] = (heroCount as List).length;
+        post['menace_count'] = (menaceCount as List).length;
+
+        // Checking if the current user has already voted
+        final currentUser = Supabase.instance.client.auth.currentUser;
+        if (currentUser != null) {
+          final userInteraction = await Supabase.instance.client
+              .from('post_interactions')
+              .select('type')
+              .eq('post_id', post['id'])
+              .eq('user_id', currentUser.id)
+              .maybeSingle();
+          
+          post['user_vote'] = userInteraction?['type'];
+        }
+      } catch (e) {
+        // If the table doesn't exist, we just default to 0 votes
+        post['hero_count'] = 0;
+        post['menace_count'] = 0;
+        post['user_vote'] = null;
+        debugPrint("Citizen: Interaction table not found. Did you run the SQL script?");
       }
 
       loadedPosts.add(post);
