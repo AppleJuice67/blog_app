@@ -11,6 +11,11 @@ class PostDetailsScreen extends StatefulWidget {
   final String title;
   final String subtitle;
   final String content;
+  
+  // SPIDER-MAN THEME: New fields for the "Hero or Menace" voting system
+  final int heroCount;
+  final int menaceCount;
+  final String? userVote;
 
   const PostDetailsScreen({
     super.key,
@@ -18,6 +23,9 @@ class PostDetailsScreen extends StatefulWidget {
     required this.title,
     required this.subtitle,
     required this.content,
+    this.heroCount = 0,
+    this.menaceCount = 0,
+    this.userVote,
   });
 
   @override
@@ -174,6 +182,34 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                           color: Colors.black,
                           letterSpacing: 0.5,
                         ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // SPIDER-MAN THEME: Interaction row for voting
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildInteractionButton(
+                            context: context,
+                            label: "HERO!",
+                            count: widget.heroCount,
+                            icon: Icons.flash_on,
+                            isActive: widget.userVote == 'hero',
+                            activeColor: const Color(0xFF2980B9),
+                            onTap: () => context.read<PostProvider>().toggleInteraction(widget.postId, 'hero'),
+                          ),
+                          const SizedBox(width: 12),
+                          _buildInteractionButton(
+                            context: context,
+                            label: "MENACE!",
+                            count: widget.menaceCount,
+                            icon: Icons.close,
+                            isActive: widget.userVote == 'menace',
+                            activeColor: const Color(0xFFC0392B),
+                            onTap: () => context.read<PostProvider>().toggleInteraction(widget.postId, 'menace'),
+                          ),
+                        ],
                       ),
 
                       const Padding(
@@ -438,6 +474,60 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
               );
             },
           ),
+        ),
+      ),
+    );
+  }
+
+  // SPIDER-MAN THEME: Helper to build the heroic interaction buttons
+  // Identical to the one in PostCard to maintain the heroic design language.
+  Widget _buildInteractionButton({
+    required BuildContext context,
+    required String label,
+    required int count,
+    required IconData icon,
+    required bool isActive,
+    required Color activeColor,
+    required VoidCallback onTap,
+  }) {
+    final bool isLoggedIn = Supabase.instance.client.auth.currentUser != null;
+    
+    return InkWell(
+      onTap: isLoggedIn ? onTap : () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("CITIZEN: YOU MUST LOGIN TO VOTE!")),
+        );
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isActive ? activeColor : Colors.white,
+          border: Border.all(color: Colors.black, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black,
+              offset: isActive ? const Offset(1, 1) : const Offset(3, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: isActive ? Colors.white : Colors.black,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              "$label $count",
+              style: GoogleFonts.bebasNeue(
+                fontSize: 14,
+                color: isActive ? Colors.white : Colors.black,
+                letterSpacing: 1,
+              ),
+            ),
+          ],
         ),
       ),
     );

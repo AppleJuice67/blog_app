@@ -53,6 +53,36 @@ class PostProvider extends ChangeNotifier {
         post['username'] = 'Unknown User';
       }
 
+      // SPIDER-MAN THEME: Fetching Hero/Menace interaction counts
+      // This part counts how many people voted 'hero' or 'menace' for each post
+      final heroCount = await Supabase.instance.client
+          .from('post_interactions')
+          .select()
+          .eq('post_id', post['id'])
+          .eq('type', 'hero');
+      
+      final menaceCount = await Supabase.instance.client
+          .from('post_interactions')
+          .select()
+          .eq('post_id', post['id'])
+          .eq('type', 'menace');
+
+      post['hero_count'] = (heroCount as List).length;
+      post['menace_count'] = (menaceCount as List).length;
+
+      // Checking if the current user has already voted
+      final currentUser = Supabase.instance.client.auth.currentUser;
+      if (currentUser != null) {
+        final userInteraction = await Supabase.instance.client
+            .from('post_interactions')
+            .select('type')
+            .eq('post_id', post['id'])
+            .eq('user_id', currentUser.id)
+            .maybeSingle();
+        
+        post['user_vote'] = userInteraction?['type']; // 'hero', 'menace', or null
+      }
+
       loadedPosts.add(post);
     }
 
@@ -116,6 +146,49 @@ class PostProvider extends ChangeNotifier {
     })
         .eq('id', id);
 
+    await fetchPosts();
+  }
+
+  // SPIDER-MAN THEME: Logic for the "Hero or Menace" voting system
+  // This method handles adding, changing, or removing a user's vote on a post.
+  Future<void> toggleInteraction(int postId, String type) async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return; // Must be logged in to vote
+
+    // Check if the user has already voted on this post
+    final existing = await Supabase.instance.client
+        .from('post_interactions')
+        .select()
+        .eq('post_id', postId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+    if (existing != null) {
+      if (existing['type'] == type) {
+        // If clicking the same button again, we "un-vote" (remove the record)
+        await Supabase.instance.client
+            .from('post_interactions')
+            .delete()
+            .eq('id', existing['id']);
+      } else {
+        // If changing from Hero to Menace (or vice-versa), we update the record
+        await Supabase.instance.client
+            .from('post_interactions')
+            .update({'type': type})
+            .eq('id', existing['id']);
+      }
+    } else {
+      // If no vote exists, create a new record
+      await Supabase.instance.client
+          .from('post_interactions')
+          .insert({
+        'post_id': postId,
+        'user_id': user.id,
+        'type': type,
+      });
+    }
+
+    // Refresh the posts list to show updated counts and active states
     await fetchPosts();
   }
 

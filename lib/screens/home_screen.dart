@@ -190,6 +190,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         username: post['username'] ?? 'Unknown User',
                         isLoggedIn: authProvider.isLoggedIn,
                         onRefresh: postProvider.fetchPosts,
+                        // SPIDER-MAN THEME: Passing the interaction data to the card
+                        heroCount: post['hero_count'] ?? 0,
+                        menaceCount: post['menace_count'] ?? 0,
+                        userVote: post['user_vote'],
                       );
                     },
                   ),

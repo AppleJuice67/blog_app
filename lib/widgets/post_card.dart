@@ -18,6 +18,12 @@ class PostCard extends StatelessWidget {
   final String? createdAt;
   final VoidCallback onRefresh;
   final bool isLoggedIn;
+  
+  // SPIDER-MAN THEME: New fields for the "Hero or Menace" voting system
+  // We use these to display how many citizens have voted and what the user's current stance is.
+  final int heroCount;
+  final int menaceCount;
+  final String? userVote;
 
   const PostCard({
     super.key,
@@ -31,6 +37,9 @@ class PostCard extends StatelessWidget {
     required this.createdAt,
     required this.onRefresh,
     required this.isLoggedIn,
+    this.heroCount = 0,
+    this.menaceCount = 0,
+    this.userVote,
   });
 
   @override
@@ -52,6 +61,10 @@ class PostCard extends StatelessWidget {
                 title: title,
                 subtitle: subtitle,
                 content: content,
+                // SPIDER-MAN THEME: Passing interaction data to the details screen
+                heroCount: heroCount,
+                menaceCount: menaceCount,
+                userVote: userVote,
               ),
             ),
           );
@@ -150,6 +163,37 @@ class PostCard extends StatelessWidget {
 
                   const SizedBox(height: 16),
 
+                  // SPIDER-MAN THEME: The Hero or Menace interaction bar
+                  // This allows users to vote on whether Spidey (or the post author) is a hero or a menace.
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // HERO BUTTON (Like)
+                      _buildInteractionButton(
+                        context: context,
+                        label: "HERO!",
+                        count: heroCount,
+                        icon: Icons.flash_on, // "Zap" or power icon
+                        isActive: userVote == 'hero',
+                        activeColor: const Color(0xFF2980B9), // Spidey Blue
+                        onTap: () => context.read<PostProvider>().toggleInteraction(id, 'hero'),
+                      ),
+                      const SizedBox(width: 12),
+                      // MENACE BUTTON (Dislike)
+                      _buildInteractionButton(
+                        context: context,
+                        label: "MENACE!",
+                        count: menaceCount,
+                        icon: Icons.close, // Cross out icon
+                        isActive: userVote == 'menace',
+                        activeColor: const Color(0xFFC0392B), // Bugle Red
+                        onTap: () => context.read<PostProvider>().toggleInteraction(id, 'menace'),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
                   // Bottom Action Row
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center, // Centered Action
@@ -236,6 +280,60 @@ class PostCard extends StatelessWidget {
                       ),
                     ),
                 ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // SPIDER-MAN THEME: Helper to build the heroic interaction buttons
+  // This method creates the stylized, comic-book buttons used for voting.
+  Widget _buildInteractionButton({
+    required BuildContext context,
+    required String label,
+    required int count,
+    required IconData icon,
+    required bool isActive,
+    required Color activeColor,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: isLoggedIn ? onTap : () {
+        // Show a snackbar if the user tries to vote without being logged in
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("CITIZEN: YOU MUST LOGIN TO VOTE!")),
+        );
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isActive ? activeColor : Colors.white,
+          border: Border.all(color: Colors.black, width: 2),
+          boxShadow: [
+            // If active, we give it a "pressed" look (smaller shadow)
+            BoxShadow(
+              color: Colors.black,
+              offset: isActive ? const Offset(1, 1) : const Offset(3, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: isActive ? Colors.white : Colors.black,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              "$label $count",
+              style: GoogleFonts.bebasNeue(
+                fontSize: 14,
+                color: isActive ? Colors.white : Colors.black,
+                letterSpacing: 1,
               ),
             ),
           ],
