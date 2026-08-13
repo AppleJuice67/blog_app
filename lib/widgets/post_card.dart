@@ -168,25 +168,26 @@ class PostCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // HERO BUTTON (Like)
+                      // HERO BUTTON (Red Spidey)
                       _buildInteractionButton(
                         context: context,
                         label: "HERO!",
                         count: heroCount,
-                        icon: Icons.flash_on, // "Zap" or power icon
+                        imageUrl: "https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/spider-man-icon.png",
                         isActive: userVote == 'hero',
-                        activeColor: const Color(0xFF2980B9), // Spidey Blue
+                        activeColor: const Color(0xFFC0392B), // Heroic Red
                         onTap: () => context.read<PostProvider>().toggleInteraction(id, 'hero'),
                       ),
                       const SizedBox(width: 12),
-                      // MENACE BUTTON (Dislike)
+                      // MENACE BUTTON (Black Spidey)
                       _buildInteractionButton(
                         context: context,
                         label: "MENACE!",
                         count: menaceCount,
-                        icon: Icons.close, // Cross out icon
+                        imageUrl: "https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/spider-man-icon.png",
+                        isBlackMask: true, // We will tint this black
                         isActive: userVote == 'menace',
-                        activeColor: const Color(0xFFC0392B), // Bugle Red
+                        activeColor: Colors.black, // Symbiote Black
                         onTap: () => context.read<PostProvider>().toggleInteraction(id, 'menace'),
                       ),
                     ],
@@ -289,51 +290,66 @@ class PostCard extends StatelessWidget {
   }
 
   // SPIDER-MAN THEME: Helper to build the heroic interaction buttons
-  // This method creates the stylized, comic-book buttons used for voting.
+  // Refined for Version 2.0 with Mask Images and Badge Shapes.
   Widget _buildInteractionButton({
     required BuildContext context,
     required String label,
     required int count,
-    required IconData icon,
+    required String imageUrl,
     required bool isActive,
     required Color activeColor,
     required VoidCallback onTap,
+    bool isBlackMask = false,
   }) {
+    // We only show the active color if the user is logged in AND has voted.
+    final bool showActive = isLoggedIn && isActive;
+
     return InkWell(
+      borderRadius: BorderRadius.circular(20), // Round interaction area
       onTap: isLoggedIn ? onTap : () {
-        // Show a snackbar if the user tries to vote without being logged in
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("CITIZEN: YOU MUST LOGIN TO VOTE!")),
         );
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? activeColor : Colors.white,
+          color: showActive ? activeColor : Colors.white,
+          // Rounder, badge-like shape instead of a box
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.black, width: 2),
           boxShadow: [
-            // If active, we give it a "pressed" look (smaller shadow)
             BoxShadow(
               color: Colors.black,
-              offset: isActive ? const Offset(1, 1) : const Offset(3, 3),
+              offset: showActive ? const Offset(1, 1) : const Offset(4, 4),
             ),
           ],
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 16,
-              color: isActive ? Colors.white : Colors.black,
+            // SPIDEY MASK IMAGE
+            // We use a ColorFiltered to tint the mask black for the Menace button
+            ColorFiltered(
+              colorFilter: ColorFilter.mode(
+                isBlackMask ? (showActive ? Colors.white : Colors.black) : (showActive ? Colors.white : Colors.red.shade700),
+                BlendMode.srcIn,
+              ),
+              child: Image.network(
+                imageUrl,
+                height: 20,
+                width: 20,
+                errorBuilder: (context, error, stackTrace) => const Icon(Icons.face, size: 20),
+              ),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: 8),
             Text(
               "$label $count",
               style: GoogleFonts.bebasNeue(
-                fontSize: 14,
-                color: isActive ? Colors.white : Colors.black,
-                letterSpacing: 1,
+                fontSize: 16,
+                color: showActive ? Colors.white : Colors.black,
+                letterSpacing: 1.2,
               ),
             ),
           ],

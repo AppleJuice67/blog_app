@@ -195,9 +195,9 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                             context: context,
                             label: "HERO!",
                             count: widget.heroCount,
-                            icon: Icons.flash_on,
+                            imageUrl: "https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/spider-man-icon.png",
                             isActive: widget.userVote == 'hero',
-                            activeColor: const Color(0xFF2980B9),
+                            activeColor: const Color(0xFFC0392B),
                             onTap: () => context.read<PostProvider>().toggleInteraction(widget.postId, 'hero'),
                           ),
                           const SizedBox(width: 12),
@@ -205,9 +205,10 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                             context: context,
                             label: "MENACE!",
                             count: widget.menaceCount,
-                            icon: Icons.close,
+                            imageUrl: "https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/spider-man-icon.png",
+                            isBlackMask: true,
                             isActive: widget.userVote == 'menace',
-                            activeColor: const Color(0xFFC0392B),
+                            activeColor: Colors.black,
                             onTap: () => context.read<PostProvider>().toggleInteraction(widget.postId, 'menace'),
                           ),
                         ],
@@ -486,14 +487,17 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
     required BuildContext context,
     required String label,
     required int count,
-    required IconData icon,
+    required String imageUrl,
     required bool isActive,
     required Color activeColor,
     required VoidCallback onTap,
+    bool isBlackMask = false,
   }) {
     final bool isLoggedIn = Supabase.instance.client.auth.currentUser != null;
+    final bool showActive = isLoggedIn && isActive;
     
     return InkWell(
+      borderRadius: BorderRadius.circular(20),
       onTap: isLoggedIn ? onTap : () {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("CITIZEN: YOU MUST LOGIN TO VOTE!")),
@@ -501,31 +505,40 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? activeColor : Colors.white,
+          color: showActive ? activeColor : Colors.white,
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.black, width: 2),
           boxShadow: [
             BoxShadow(
               color: Colors.black,
-              offset: isActive ? const Offset(1, 1) : const Offset(3, 3),
+              offset: showActive ? const Offset(1, 1) : const Offset(4, 4),
             ),
           ],
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 16,
-              color: isActive ? Colors.white : Colors.black,
+            ColorFiltered(
+              colorFilter: ColorFilter.mode(
+                isBlackMask ? (showActive ? Colors.white : Colors.black) : (showActive ? Colors.white : Colors.red.shade700),
+                BlendMode.srcIn,
+              ),
+              child: Image.network(
+                imageUrl,
+                height: 20,
+                width: 20,
+                errorBuilder: (context, error, stackTrace) => const Icon(Icons.face, size: 20),
+              ),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: 8),
             Text(
               "$label $count",
               style: GoogleFonts.bebasNeue(
-                fontSize: 14,
-                color: isActive ? Colors.white : Colors.black,
-                letterSpacing: 1,
+                fontSize: 16,
+                color: showActive ? Colors.white : Colors.black,
+                letterSpacing: 1.2,
               ),
             ),
           ],

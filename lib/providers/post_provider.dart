@@ -160,45 +160,67 @@ class PostProvider extends ChangeNotifier {
 
   // SPIDER-MAN THEME: Logic for the "Hero or Menace" voting system
   // This method handles adding, changing, or removing a user's vote on a post.
+  // OPTIMISTIC UI: We update the local count instantly so the user doesn't see a delay.
   Future<void> toggleInteraction(int postId, String type) async {
     final user = Supabase.instance.client.auth.currentUser;
-    if (user == null) return; // Must be logged in to vote
+    if (user == null) return;
 
-    // Check if the user has already voted on this post
-    final existing = await Supabase.instance.client
-        .from('post_interactions')
-        .select()
-        .eq('post_id', postId)
-        .eq('user_id', user.id)
-        .maybeSingle();
+    // 1. SAVE THE OLD STATE (in case we need to roll back if the network fails)
+    final originalPosts = List<Map<String, dynamic>>.from(posts);
+    
+    // 2. UPDATE THE LOCAL STATE INSTANTLY (Optimistic Update)
+    // This makes the UI feel fast and "Heroic"
+    for (var post in posts) {
+      if (post['id'] == postId) {
+        final oldVote = post['user_vote'];
+        
+        // Remove old vote effect from counts
+        if (oldVote == 'hero') post['hero_count']--;
+        if (oldVote == 'menace') post['menace_count']--;
 
-    if (existing != null) {
-      if (existing['type'] == type) {
-        // If clicking the same button again, we "un-vote" (remove the record)
-        await Supabase.instance.client
-            .from('post_interactions')
-            .delete()
-            .eq('id', existing['id']);
-      } else {
-        // If changing from Hero to Menace (or vice-versa), we update the record
-        await Supabase.instance.client
-            .from('post_interactions')
-            .update({'type': type})
-            .eq('id', existing['id']);
+        if (oldVote == type) {
+          // If clicking the same button, we just removed the vote
+          post['user_vote'] = null;
+        } else {
+          // Add new vote effect to counts
+          post['user_vote'] = type;
+          if (type == 'hero') post['hero_count']++;
+          if (type == 'menace') post['menace_count']++;
+        }
+        break;
       }
-    } else {
-      // If no vote exists, create a new record
-      await Supabase.instance.client
-          .from('post_interactions')
-          .insert({
-        'post_id': postId,
-        'user_id': user.id,
-        'type': type,
-      });
     }
+    notifyListeners(); // Refresh UI immediately
 
-    // Refresh the posts list to show updated counts and active states
-    await fetchPosts();
+    // 3. SEND THE REQUEST TO THE DATABASE IN THE BACKGROUND
+    try {
+      final existing = await Supabase.instance.client
+          .from('post_interactions')
+          .select()
+          .eq('post_id', postId)
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+      if (existing != null) {
+        if (existing['type'] == type) {
+          await Supabase.instance.client.from('post_interactions').delete().eq('id', existing['id']);
+        } else {
+          await Supabase.instance.client.from('post_interactions').update({'type': type}).eq('id', existing['id']);
+        }
+      } else {
+        await Supabase.instance.client.from('post_interactions').insert({
+          'post_id': postId,
+          'user_id': user.id,
+          'type': type,
+        });
+      }
+    } catch (e) {
+      // 4. ROLLBACK IF ERROR OCCURS
+      // If the web/network fails, we return to the original counts
+      posts = originalPosts;
+      notifyListeners();
+      debugPrint("Citizen Error: Vote failed to reach HQ. Rolling back.");
+    }
   }
 
 }
